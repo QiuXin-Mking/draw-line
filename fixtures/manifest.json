@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "policy": "Fixtures reference repository source files only; competitor samples are not copied into release packages.",
+  "samples": [
+    { "path": "凉鞋.dxf", "sha256": "0d33978d2ae1fead505f33d2f411c92ef5e5941bfe38d1979eca2292f577555a", "expected": { "lwpolyline": 9, "text": 18, "closedPieceCandidates": 9, "unitReviewRequired": true } },
+    { "path": "03-测试数据/划线/38.DXF", "sha256": "a65b929b5d743bce1a28c5da9ccc936cd10ec4cbfa9787c2cb7967c0d8ab98a1", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/39.DXF", "sha256": "c96969fa36b88056f00b6f521182fe6c8d5e7af63c395d2b8bfaf1f95cc68072", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/40.DXF", "sha256": "d18bd5a2bda9cd012074d68a31fa45a806c464f8bb6ccaf2b463940ba857693e", "expected": { "polyline": 84, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/41.DXF", "sha256": "65a80d3ed4ad1b4f658d3bde5a83fa581d17f542cf450f6ada8007a3e9a67811", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/42.DXF", "sha256": "7e66356205f6cc55e4f5d4b988a7dd3be9f80b33a184c46ea14f2c12225450e7", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/43.DXF", "sha256": "6b0ec6baabefb8609a5ba675c40a85d9f11a3a47852bbcf8ebbcc02c5c6f7b47", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/44.DXF", "sha256": "2d053082592f35ed3a5e062674fbe3c0b1704464e30eff823ad8ea8a6942ba37", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } },
+    { "path": "03-测试数据/划线/45.DXF", "sha256": "d11e545b3f519423df5c1fb0bdaa0e1b38d4246ac4970773515284e9881b699b", "expected": { "polyline": 81, "diagnostic": "DXF-OPEN-POLYLINE" } }
+  ]
+}

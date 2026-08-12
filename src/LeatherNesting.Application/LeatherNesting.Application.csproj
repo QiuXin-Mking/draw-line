@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../LeatherNesting.Domain/LeatherNesting.Domain.csproj" />
+    <ProjectReference Include="../LeatherNesting.Geometry/LeatherNesting.Geometry.csproj" />
+  </ItemGroup>
+</Project>

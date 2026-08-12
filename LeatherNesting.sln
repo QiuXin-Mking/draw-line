@@ -1,0 +1,76 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Domain", "src\LeatherNesting.Domain\LeatherNesting.Domain.csproj", "{69A31E19-1628-41C1-BF9C-C48E3B9A0350}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Application", "src\LeatherNesting.Application\LeatherNesting.Application.csproj", "{CD59BDDF-D149-4661-A7E0-04633194C17A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Geometry", "src\LeatherNesting.Geometry\LeatherNesting.Geometry.csproj", "{25A4C7F5-10A2-45CF-89D4-834B94AF1D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Infrastructure", "src\LeatherNesting.Infrastructure\LeatherNesting.Infrastructure.csproj", "{B5488B44-BF11-4422-A78D-99461493A0FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Desktop", "src\LeatherNesting.Desktop\LeatherNesting.Desktop.csproj", "{F544D7BB-C322-445D-853E-D6B40DD121BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Domain.Tests", "tests\LeatherNesting.Domain.Tests\LeatherNesting.Domain.Tests.csproj", "{1F3C87B8-99FB-4FA2-8627-60958E58533A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Infrastructure.Tests", "tests\LeatherNesting.Infrastructure.Tests\LeatherNesting.Infrastructure.Tests.csproj", "{633A7E1C-AF8C-4A37-B9A6-1FF2CEB7CE16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Desktop.Tests", "tests\LeatherNesting.Desktop.Tests\LeatherNesting.Desktop.Tests.csproj", "{33C0CBEC-5055-41E0-BD02-34F5F8F8C8C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.EndToEnd.Tests", "tests\LeatherNesting.EndToEnd.Tests\LeatherNesting.EndToEnd.Tests.csproj", "{97F06047-DA68-4C2D-91ED-3B8F31FD0A54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Geometry.Tests", "tests\LeatherNesting.Geometry.Tests\LeatherNesting.Geometry.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeatherNesting.Application.Tests", "tests\LeatherNesting.Application.Tests\LeatherNesting.Application.Tests.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
+EndProject
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {69A31E19-1628-41C1-BF9C-C48E3B9A0350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {69A31E19-1628-41C1-BF9C-C48E3B9A0350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {69A31E19-1628-41C1-BF9C-C48E3B9A0350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {69A31E19-1628-41C1-BF9C-C48E3B9A0350}.Release|Any CPU.Build.0 = Release|Any CPU
+    {CD59BDDF-D149-4661-A7E0-04633194C17A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {CD59BDDF-D149-4661-A7E0-04633194C17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {CD59BDDF-D149-4661-A7E0-04633194C17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {CD59BDDF-D149-4661-A7E0-04633194C17A}.Release|Any CPU.Build.0 = Release|Any CPU
+    {25A4C7F5-10A2-45CF-89D4-834B94AF1D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {25A4C7F5-10A2-45CF-89D4-834B94AF1D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {25A4C7F5-10A2-45CF-89D4-834B94AF1D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {25A4C7F5-10A2-45CF-89D4-834B94AF1D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+    {B5488B44-BF11-4422-A78D-99461493A0FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {B5488B44-BF11-4422-A78D-99461493A0FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {B5488B44-BF11-4422-A78D-99461493A0FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {B5488B44-BF11-4422-A78D-99461493A0FE}.Release|Any CPU.Build.0 = Release|Any CPU
+    {F544D7BB-C322-445D-853E-D6B40DD121BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {F544D7BB-C322-445D-853E-D6B40DD121BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {F544D7BB-C322-445D-853E-D6B40DD121BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {F544D7BB-C322-445D-853E-D6B40DD121BB}.Release|Any CPU.Build.0 = Release|Any CPU
+    {1F3C87B8-99FB-4FA2-8627-60958E58533A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {1F3C87B8-99FB-4FA2-8627-60958E58533A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {1F3C87B8-99FB-4FA2-8627-60958E58533A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {1F3C87B8-99FB-4FA2-8627-60958E58533A}.Release|Any CPU.Build.0 = Release|Any CPU
+    {633A7E1C-AF8C-4A37-B9A6-1FF2CEB7CE16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {633A7E1C-AF8C-4A37-B9A6-1FF2CEB7CE16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {633A7E1C-AF8C-4A37-B9A6-1FF2CEB7CE16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {633A7E1C-AF8C-4A37-B9A6-1FF2CEB7CE16}.Release|Any CPU.Build.0 = Release|Any CPU
+    {33C0CBEC-5055-41E0-BD02-34F5F8F8C8C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {33C0CBEC-5055-41E0-BD02-34F5F8F8C8C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {33C0CBEC-5055-41E0-BD02-34F5F8F8C8C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {33C0CBEC-5055-41E0-BD02-34F5F8F8C8C8}.Release|Any CPU.Build.0 = Release|Any CPU
+    {97F06047-DA68-4C2D-91ED-3B8F31FD0A54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {97F06047-DA68-4C2D-91ED-3B8F31FD0A54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {97F06047-DA68-4C2D-91ED-3B8F31FD0A54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {97F06047-DA68-4C2D-91ED-3B8F31FD0A54}.Release|Any CPU.Build.0 = Release|Any CPU
+    {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+    {B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
+EndGlobal

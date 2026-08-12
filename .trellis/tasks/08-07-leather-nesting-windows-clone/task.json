@@ -1,12 +1,12 @@
 {
   "id": "leather-nesting-windows-clone",
   "name": "leather-nesting-windows-clone",
-  "title": "Windows皮革排样软件 - 竞品克隆与保护",
-  "description": "",
-  "status": "planning",
+  "title": "跨平台皮革排样软件 - 功能对标与商业保护",
+  "description": "面向 macOS 与工厂 Windows 的皮革/鞋材 CAD、码齿、自动排样、人工复核、导出与商业授权软件。",
+  "status": "in_progress",
   "dev_type": null,
-  "scope": null,
-  "package": null,
+  "scope": "desktop, geometry, dxf, nesting, licensing, activation-server, compatibility",
+  "package": "cross-platform-desktop",
   "priority": "P2",
   "creator": "qx",
   "assignee": "qx",
@@ -20,7 +20,12 @@
   "subtasks": [],
   "children": [],
   "parent": null,
-  "relatedFiles": [],
-  "notes": "",
+  "relatedFiles": [
+    "凉鞋.dxf",
+    "03-测试数据/划线/",
+    "02-竞品数据分析/02-银象科技/语音正式转文字/",
+    "02-竞品数据分析/02-银象科技/待确认概念/"
+  ],
+  "notes": "2026-08-10 用户批准：工作流优先 7 阶段、.NET 10 LTS + Avalonia 12、停止保留当前最佳、取消回滚。规划完成后由用户审阅并显式启动。",
   "meta": {}
 }

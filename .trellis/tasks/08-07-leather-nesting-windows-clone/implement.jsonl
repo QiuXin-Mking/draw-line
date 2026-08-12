@@ -1,1 +1,3 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/tasks/08-07-leather-nesting-windows-clone/research/ui-evidence-and-functional-model.md", "reason": "实施 UI、CAD、码齿和排样状态机时必须遵守的本地/公开证据与未知项边界"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "项目跨 UI、应用、几何、DXF、存储、授权和平台适配层，实施前检查数据合同与边界"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "公差、验证器、状态码、ExportProfile 和平台能力必须集中复用，禁止多处魔法值"}

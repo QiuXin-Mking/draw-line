@@ -1,0 +1,20 @@
+# .NET build artifacts are local and reproducible; do not stage them with source.
+[Bb]in/
+[Oo]bj/
+
+# Test and coverage output.
+TestResults/
+*.trx
+*.coverage
+
+# OS metadata.
+.DS_Store
+
+# Generated demo output (large DXF/PNG artifacts).
+demo_output/
+
+# Screenshots and archives.
+截屏*.png
+*.rar
+*.zip
+*.7z
