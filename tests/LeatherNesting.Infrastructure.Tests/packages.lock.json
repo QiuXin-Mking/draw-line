@@ -96,11 +96,19 @@
       "leathernesting.application": {
         "type": "Project",
         "dependencies": {
-          "LeatherNesting.Domain": "[1.0.0, )"
+          "LeatherNesting.Domain": "[1.0.0, )",
+          "LeatherNesting.Geometry": "[1.0.0, )"
         }
       },
       "leathernesting.domain": {
         "type": "Project"
+      },
+      "leathernesting.geometry": {
+        "type": "Project",
+        "dependencies": {
+          "Clipper2": "[2.0.0, )",
+          "LeatherNesting.Domain": "[1.0.0, )"
+        }
       },
       "leathernesting.infrastructure": {
         "type": "Project",
@@ -108,6 +116,12 @@
           "LeatherNesting.Application": "[1.0.0, )",
           "LeatherNesting.Domain": "[1.0.0, )"
         }
+      },
+      "Clipper2": {
+        "type": "CentralTransitive",
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "2X23RZxJrjRjOSZc20aqXY9jpmHLekDRy4PIMfrsi2LPNzxFYlnuqzX/nLdk77fbURHUeX+gMhUn2a1z9/wMTQ=="
       }
     }
   }

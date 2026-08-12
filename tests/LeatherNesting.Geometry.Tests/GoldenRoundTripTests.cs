@@ -1,4 +1,7 @@
 using LeatherNesting.Geometry;
+using LeatherNesting.Geometry.Features;
+using LeatherNesting.Geometry.Offset;
+using LeatherNesting.Geometry.Repair;
 using Xunit;
 
 namespace LeatherNesting.Geometry.Tests;

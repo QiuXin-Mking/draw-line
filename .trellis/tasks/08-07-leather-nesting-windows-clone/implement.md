@@ -99,7 +99,7 @@ docs/acceptance/stage-1.md
 | P1-PRJ-003 | 正常 | 新建项目具有 schema v1、非空 ID、revision 0 和干净状态 |
 | P1-UI-001 | UI | 导入向导前进/返回/取消；取消不改变项目；脏项目关闭出现保存/放弃/取消 |
 | P1-UI-002 | 兼容 | 1366×768、100/125/150% DPI 无关键按钮截断；键盘可完成主流程 |
-| P1-PLT-001 | 平台 | macOS arm64/x64 与 Windows x64 启动、导入、保存、重开冒烟通过 |
+| P1-PLT-001 | 平台 | macOS arm64/x64 启动、导入、保存、重开冒烟通过；Windows 真机验证移至阶段 6 |
 | P1-E2E-001 | 跨层主路径 | 用真实 `凉鞋.dxf` 完成检查→确认毫米→保存→重开，并保留导入来源哈希 |
 
 ### 1.5 阶段命令
@@ -118,7 +118,7 @@ dotnet publish src/LeatherNesting.Desktop -c Release -r win-x64 --self-contained
 - [ ] 从空项目到导入并保存不需要手工改 DXF。
 - [ ] 用户能从画布或问题表互相定位错误实体。
 - [ ] 原文件、单位决定和诊断在项目中可追溯。
-- [ ] Mac 和至少一台正式支持 Windows 环境完成演示。
+- [ ] 在 macOS 上完成演示；Windows 真机验证移至阶段 6。
 - [ ] 产品负责人批准 DXF adapter ADR 和 Stage 1 记录。
 
 **回退点**：只回退 Stage 1 安装包和项目 schema v1；如果 DXF 库失败，保留接口/领域模型并替换 adapter，不重写 UI。

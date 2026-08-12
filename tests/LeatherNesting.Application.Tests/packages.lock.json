@@ -96,7 +96,8 @@
       "leathernesting.application": {
         "type": "Project",
         "dependencies": {
-          "LeatherNesting.Domain": "[1.0.0, )"
+          "LeatherNesting.Domain": "[1.0.0, )",
+          "LeatherNesting.Geometry": "[1.0.0, )"
         }
       },
       "leathernesting.domain": {

@@ -17,7 +17,7 @@
 | P1-PRJ-003 | `ProjectDocumentTests.Create_new_project_sets_schema_and_clean_revision` | 通过：2026-08-11 本机 .NET 10 |
 | P1-UI-001 | `ImportWizardViewModelTests.Cancel_discards_session...` | 通过：2026-08-11；取消清空会话且不修改项目 |
 | P1-UI-002 | `ImportWizardViewModelTests.Workflow_requires_millimetres_confirmation_before_project_is_changed` | 通过：2026-08-11；未确认毫米前项目不变，确认后创建脏修订 |
-| P1-PLT-001 | 平台启动与发布 | 部分通过：2026-08-11 Mac arm64 实际启动进程保持运行，跨层 DXF 保存/重开测试通过；已生成 204 MB `win-x64` 自包含发布物。仍需完成 Mac GUI 人工操作、macOS x64 与 Windows 真机冒烟。 |
+| P1-PLT-001 | 平台启动与发布 | 部分通过：2026-08-11 Mac arm64 实际启动进程保持运行，跨层 DXF 保存/重开测试通过；已生成 204 MB `win-x64` 自包含发布物。仍需完成 Mac GUI 人工操作与 macOS x64 冒烟；Windows 真机验证移至阶段 6。 |
 | P1-E2E-001 | `Stage1WorkflowTests.Real_dxf_can_be_checked_confirmed_saved_and_reopened` | 通过：2026-08-11；真实 DXF 检查、确认毫米、保存与重开保留来源哈希 |
 
 验证命令：
@@ -31,6 +31,6 @@ dotnet build LeatherNesting.sln -c Release
 
 本次复核：当前源码清单包含 Domain 2 个、Infrastructure 19 个（含 1 个 8 数据行的 Theory）、Desktop 2 个、End-to-End 1 个 Stage 1 测试执行。复核环境未安装 .NET SDK，不能重新确认既有历史结果，也不能运行本次新增的 P1-DXF-004 回归；因此阶段门仍被自动化复验阻断。此前记录的 Python 回归、锁定依赖恢复、整解构建、格式检查和 Windows x64 发布结果仅作为历史证据，不替代本次复验。
 
-尚未完成 P1-PLT-001 的 Windows 真机、macOS x64 真机启动/导入/保存冒烟，以及 1366×768、100/125/150% DPI 的人工验收。不得将本记录视为阶段门已通过。
+尚未完成 P1-PLT-001 的 macOS x64 真机启动/导入/保存冒烟，以及 1366×768、100/125/150% DPI 的人工验收；Windows 真机验证已移至阶段 6，不再作为阶段 1 门的一部分。不得将本记录视为阶段门已通过。
 
 执行步骤与证据格式见 [Stage 1 Manual Smoke Checklist](./stage-1-manual-smoke.md)。

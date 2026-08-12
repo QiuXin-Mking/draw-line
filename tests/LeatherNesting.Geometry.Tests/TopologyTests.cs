@@ -1,4 +1,5 @@
 using LeatherNesting.Geometry;
+using LeatherNesting.Geometry.Repair;
 using LeatherNesting.Geometry.Topology;
 using Xunit;
 
