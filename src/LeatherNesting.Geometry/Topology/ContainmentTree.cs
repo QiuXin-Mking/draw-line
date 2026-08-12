@@ -16,8 +16,12 @@ public sealed class ContainmentTree
         if (loops.Count == 0)
             return new ContainmentResult([], [], []);
 
-        // Compute bounding boxes and assign roles
-        var nodes = loops.Select((loop, i) => new LoopNode(i, loop, ComputeCentroid(loop))).ToList();
+        // Compute bounding boxes and assign roles, ordered by area so a hole is never
+        // checked for containing its own outer (their centroids may coincide).
+        var nodes = loops
+            .Select((loop, i) => new LoopNode(i, loop, ComputeCentroid(loop)))
+            .OrderByDescending(n => n.Loop.Area)
+            .ToList();
 
         // Outer loops: those not contained by any other loop
         // Hole loops: contained by an outer loop
@@ -30,6 +34,8 @@ public sealed class ContainmentTree
             foreach (var other in nodes)
             {
                 if (other.Index == node.Index) continue;
+                // Only a larger loop can contain a smaller one.
+                if (other.Loop.Area <= node.Loop.Area) continue;
                 if (ContainsPoint(other.Loop, node.Centroid))
                 {
                     isContained = true;

@@ -43,6 +43,7 @@ public sealed class TopologyTests
             new LineSegment2D(new(0.05, 0), new(100, 0)),
             new LineSegment2D(new(100, 0), new(100, 50)),
             new LineSegment2D(new(100, 50), new(0, 50)),
+            new LineSegment2D(new(0, 50), new(0, 0)),
         ]);
 
         var closer = new ContourCloser(tolerance);
@@ -64,6 +65,7 @@ public sealed class TopologyTests
             new LineSegment2D(new(0.11, 0), new(100, 0)),
             new LineSegment2D(new(100, 0), new(100, 50)),
             new LineSegment2D(new(100, 50), new(0, 50)),
+            new LineSegment2D(new(0, 50), new(0, 0)),
         ]);
 
         var closer = new ContourCloser(tolerance);

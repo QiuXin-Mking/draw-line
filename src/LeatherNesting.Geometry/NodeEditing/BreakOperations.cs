@@ -20,12 +20,17 @@ public sealed class BreakOperations
             return new BreakResult(loop, null, false, ["未找到断点位置。"]);
 
         var curve = loop.Curves[curveIndex];
-        var actualPoint = curve.PointAt(t);
 
-        // Rotate the curve order so the break point becomes the start/end
-        var rotated = RotateCurves(loop, curveIndex, t);
-        // Open the loop: remove the closing segment
-        var openCurves = rotated.Take(rotated.Count - 1).ToList();
+        // Split the curve at the break point, then rebuild an open chain that starts and
+        // ends at the break point so the total length is conserved.
+        var (before, after) = SplitCurve(curve, t);
+        var all = loop.Curves.ToList();
+        var openCurves = new List<Curve2D> { after };
+        for (var i = curveIndex + 1; i < all.Count; i++)
+            openCurves.Add(all[i]);
+        for (var i = 0; i < curveIndex; i++)
+            openCurves.Add(all[i]);
+        openCurves.Add(before);
 
         if (openCurves.Count == 0)
             return new BreakResult(loop, null, false, ["断点操作后没有剩余曲线。"]);
@@ -148,17 +153,6 @@ public sealed class BreakOperations
                 new CircularArc2D(a.Centre, a.Radius, a.StartAngleDegrees + a.SweepAngleDegrees * t, a.SweepAngleDegrees * (1 - t))),
             _ => (curve, curve)
         };
-    }
-
-    private static IReadOnlyList<Curve2D> RotateCurves(Loop2D loop, int curveIndex, double t)
-    {
-        var all = loop.Curves.ToList();
-        if (t > 0.001)
-        {
-            var (_, after) = SplitCurve(all[curveIndex], t);
-            all[curveIndex] = after;
-        }
-        return all.Skip(curveIndex).Concat(all.Take(curveIndex)).ToList();
     }
 }
 

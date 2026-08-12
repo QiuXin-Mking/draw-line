@@ -44,16 +44,18 @@ public sealed class OffsetAdapter
         {
             foreach (var loop in loops)
             {
+                // Normalize winding so the sign below is independent of the input curve order.
+                var oriented = loop.NormalizeWinding();
                 var sign = direction switch
                 {
-                    OffsetDirection.Inside => loop.Role == LoopRole.Outer ? -1.0 : 1.0,
-                    OffsetDirection.Outside => loop.Role == LoopRole.Outer ? 1.0 : -1.0,
+                    OffsetDirection.Inside => oriented.Role == LoopRole.Outer ? -1.0 : 1.0,
+                    OffsetDirection.Outside => oriented.Role == LoopRole.Outer ? 1.0 : -1.0,
                     _ => 1.0
                 };
                 var clipperDelta = sign * absDistance * _scale;
                 var scaledDelta = (long)Math.Round(clipperDelta);
 
-                var path = LoopToPath64(loop);
+                var path = LoopToPath64(oriented);
                 var co = new ClipperOffset();
                 co.AddPath(path, ToClipperJoin(joinStyle), loop.Role == LoopRole.Outer ? EndType.Polygon : EndType.Polygon);
 

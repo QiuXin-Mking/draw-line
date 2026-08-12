@@ -19,6 +19,7 @@ public sealed class RepairTests
             new LineSegment2D(new(0, 0), new(10, 0)),
             new LineSegment2D(new(10, 0), new(10, 10)),
             new LineSegment2D(new(10, 10), new(0.05, 10)), // gap of 0.05 to (0,10)
+            new LineSegment2D(new(0, 10), new(0, 0)),     // left edge closes at (0,10)
         };
 
         var result = repair.Repair(curves, "test");

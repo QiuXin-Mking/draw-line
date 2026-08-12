@@ -97,6 +97,7 @@ public sealed class GeometryPropertyTests
         index.Add(new LineSegment2D(new(0, 0), new(10, 0)), "a");
         index.Add(new LineSegment2D(new(10, 0), new(10, 10)), "b");
         index.Add(new LineSegment2D(new(10, 10), new(0.06, 10)), "c"); // gap 0.06 to (0,10)
+        index.Add(new LineSegment2D(new(0, 10), new(0, 0)), "d");     // left edge closes at (0,10)
 
         var gaps = index.FindGaps();
         Assert.True(gaps.Count > 0, "Should find at least one gap");

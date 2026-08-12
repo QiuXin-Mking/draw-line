@@ -65,16 +65,10 @@ public sealed class NodeOperations
         if (nodeIndex < 0 || nodeIndex >= nodes.Count)
             return new NodeEditResult(loop, newPosition, false, ["节点索引越界。"]);
 
-        // Flatten all curves to points and move the target
-        var allPoints = FlattenPoints(loop).ToList();
-        var targetIndex = FindPointIndex(allPoints, nodes[nodeIndex]);
-        if (targetIndex < 0)
-            return new NodeEditResult(loop, newPosition, false, ["未找到目标节点。"]);
+        var points = new List<Point2D>(nodes);
+        points[nodeIndex] = newPosition;
 
-        allPoints[targetIndex] = newPosition;
-
-        // Rebuild curves
-        var newLoop = RebuildLoop(loop, allPoints);
+        var newLoop = RebuildLoop(loop, points);
         if (newLoop is null)
             return new NodeEditResult(loop, newPosition, false, ["移动节点导致自交或无效轮廓。"]);
 
@@ -91,18 +85,15 @@ public sealed class NodeOperations
         if (nodeIndex < 0 || nodeIndex >= nodes.Count)
             return new NodeEditResult(loop, Point2D.Origin, false, ["节点索引越界。"]);
 
-        var allPoints = FlattenPoints(loop).ToList();
-        var targetIndex = FindPointIndex(allPoints, nodes[nodeIndex]);
-        if (targetIndex < 0)
-            return new NodeEditResult(loop, Point2D.Origin, false, ["未找到目标节点。"]);
+        var removed = nodes[nodeIndex];
+        var points = new List<Point2D>(nodes);
+        points.RemoveAt(nodeIndex);
 
-        allPoints.RemoveAt(targetIndex);
-
-        var newLoop = RebuildLoop(loop, allPoints);
+        var newLoop = RebuildLoop(loop, points);
         if (newLoop is null)
             return new NodeEditResult(loop, Point2D.Origin, false, ["删除节点导致自交或无效轮廓。"]);
 
-        return new NodeEditResult(newLoop, nodes[nodeIndex], true, []);
+        return new NodeEditResult(newLoop, removed, true, []);
     }
 
     private (Curve2D Before, Curve2D After) SplitCurve(Curve2D curve, double t)
@@ -211,46 +202,31 @@ public sealed class NodeOperations
         return (t, proj.DistanceTo(p));
     }
 
-    private static List<Point2D> FlattenPoints(Loop2D loop)
-    {
-        return loop.Curves.SelectMany(c => c switch
-        {
-            LineSegment2D l => new[] { l.Start, l.End },
-            Polyline2D p => p.Points,
-            CircularArc2D a => new[] { a.StartPoint, a.EndPoint },
-            _ => Array.Empty<Point2D>()
-        }).ToList();
-    }
-
-    private static int FindPointIndex(IReadOnlyList<Point2D> points, Point2D target)
-    {
-        for (var i = 0; i < points.Count; i++)
-        {
-            if (points[i].DistanceTo(target) < 1e-9) return i;
-        }
-        return -1;
-    }
-
     private static Loop2D? RebuildLoop(Loop2D original, IReadOnlyList<Point2D> points)
     {
-        // Simple rebuild: create polyline segments. For arcs, this loses curvature.
+        // Simple rebuild: create line segments. For arcs, this loses curvature.
         // A more sophisticated rebuild would preserve arc metadata.
         if (points.Count < 3) return null;
 
-        // Check self-intersection
-        for (var i = 0; i < points.Count - 1; i++)
-        for (var j = i + 1; j < points.Count - 1; j++)
+        // Reject coincident vertices (degenerate / folded polygon).
+        for (var i = 0; i < points.Count; i++)
+            for (var j = i + 1; j < points.Count; j++)
+                if (points[i].DistanceTo(points[j]) < 1e-9)
+                    return null;
+
+        // Reject self-intersecting polygons: any non-adjacent edge pair with an interior crossing.
+        for (var i = 0; i < points.Count; i++)
         {
-            if (j == i + 1 || (i == 0 && j == points.Count - 2)) continue;
-            var a = new LineSegment2D(points[i], points[i + 1]);
-            var b = new LineSegment2D(points[j], points[j + 1]);
-            var (dx1, dy1) = (a.End.X - a.Start.X, a.End.Y - a.Start.Y);
-            var (dx2, dy2) = (b.End.X - b.Start.X, b.End.Y - b.Start.Y);
-            var denom = dx1 * dy2 - dy1 * dx2;
-            if (Math.Abs(denom) < 1e-12) continue;
-            var t = ((b.Start.X - a.Start.X) * dy2 - (b.Start.Y - a.Start.Y) * dx2) / denom;
-            var u = ((b.Start.X - a.Start.X) * dy1 - (b.Start.Y - a.Start.Y) * dx1) / denom;
-            if (t is > 0.001 and < 0.999 && u is > 0.001 and < 0.999) return null;
+            var a1 = points[i];
+            var a2 = points[(i + 1) % points.Count];
+            for (var j = i + 1; j < points.Count; j++)
+            {
+                var b1 = points[j];
+                var b2 = points[(j + 1) % points.Count];
+                if (j == i || (j + 1) % points.Count == i) continue; // adjacent edges
+                if (EdgesIntersectInterior(a1, a2, b1, b2))
+                    return null;
+            }
         }
 
         var segments = new List<Curve2D>();
@@ -261,6 +237,17 @@ public sealed class NodeOperations
         return new Loop2D(original.StableId, original.Role, segments);
     }
 
+    private static bool EdgesIntersectInterior(Point2D a1, Point2D a2, Point2D b1, Point2D b2)
+    {
+        var (dx1, dy1) = (a2.X - a1.X, a2.Y - a1.Y);
+        var (dx2, dy2) = (b2.X - b1.X, b2.Y - b1.Y);
+        var denom = dx1 * dy2 - dy1 * dx2;
+        if (Math.Abs(denom) < 1e-12) return false;
+        var t = ((b1.X - a1.X) * dy2 - (b1.Y - a1.Y) * dx2) / denom;
+        var u = ((b1.X - a1.X) * dy1 - (b1.Y - a1.Y) * dx1) / denom;
+        return t is > 0.001 and < 0.999 && u is > 0.001 and < 0.999;
+    }
+
     private static IReadOnlyList<Point2D> DeduplicateConsecutive(IReadOnlyList<Point2D> points)
     {
         var result = new List<Point2D>();
@@ -269,6 +256,9 @@ public sealed class NodeOperations
             if (result.Count == 0 || result[^1].DistanceTo(p) > 1e-9)
                 result.Add(p);
         }
+        // A closed loop's last node coincides with its first; drop the closing duplicate.
+        if (result.Count > 1 && result[^1].DistanceTo(result[0]) <= 1e-9)
+            result.RemoveAt(result.Count - 1);
         return result;
     }
 }

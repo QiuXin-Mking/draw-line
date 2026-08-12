@@ -81,7 +81,7 @@ public sealed record Loop2D
 
     private bool ComputeWinding()
     {
-        // Shoelace formula sign
+        // Trapezoid shoelace variant: positive sum = clockwise, negative = counter-clockwise.
         var sum = 0.0;
         foreach (var curve in Curves)
         {
@@ -96,7 +96,7 @@ public sealed record Loop2D
                 sum += (end.X - start.X) * (end.Y + start.Y);
             }
         }
-        return sum < 0; // negative = clockwise
+        return sum > 0; // positive = clockwise
     }
 
     private double ComputeSignedArea()
