@@ -62,6 +62,19 @@ public sealed class AppShellViewModel
         _commands.ShowTodo($"命令「{command}」{TodoBadge.StandardText}");
     }
 
+    public void ActivateToolbarCommand(ShellToolbarCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        var module = Modules.SingleOrDefault(candidate =>
+            StringComparer.Ordinal.Equals(candidate.Id, command.TargetModuleId));
+        if (module is null)
+            throw new InvalidOperationException($"Toolbar command '{command.Label}' targets missing module '{command.TargetModuleId}'.");
+
+        Select(module);
+        if (command.IsPlaceholderAction)
+            ShowTodo(command.Label);
+    }
+
     private void OnWorkspaceSnapshotChanged(object? sender, WorkspaceSnapshot snapshot)
     {
         var target = Modules.FirstOrDefault(module => StringComparer.Ordinal.Equals(module.Id, snapshot.ActiveModuleId));

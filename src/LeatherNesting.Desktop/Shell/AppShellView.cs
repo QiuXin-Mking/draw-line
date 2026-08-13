@@ -100,18 +100,11 @@ public sealed class AppShellView : UserControl
 
     private Control BuildTopBar()
     {
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(12) };
-        bar.Children.Add(CommandButton("导入", () => ShowModule(_viewModel.Modules.Single(module => module.Id == "M02"))));
-        foreach (var label in new[] { "新建", "打开", "保存", "运行", "停止", "取消", "导出" })
-            bar.Children.Add(CommandButton(label, () => _viewModel.ShowTodo(label)));
-        return new Border { Background = AppTheme.Surface, Child = bar };
-    }
-
-    private Button CommandButton(string label, Action onClick)
-    {
-        var button = new Button { Content = label };
-        button.Click += (_, _) => onClick();
-        return button;
+        return new TopCommandArea(command =>
+        {
+            _viewModel.ActivateToolbarCommand(command);
+            _content.Content = _viewModel.CurrentView;
+        });
     }
 
     private Control BuildInspector()
