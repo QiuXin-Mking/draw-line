@@ -18,6 +18,8 @@ public sealed class MainWindow : Window
     private readonly TextBox diagnostics = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button confirm = new() { Content = "确认毫米并导入", IsEnabled = false };
     private readonly Button cancel = new() { Content = "取消导入", IsEnabled = false };
+    private readonly TabControl tabs = new();
+    private readonly TabItem workbenchTab = new() { Header = "工艺工作台" };
 
     public MainWindow()
     {
@@ -58,12 +60,14 @@ public sealed class MainWindow : Window
                 diagnostics,
             },
         };
-        Grid.SetRow(body, 1);
+        tabs.Items.Add(new TabItem { Header = "导入检查", Content = body });
+        tabs.Items.Add(workbenchTab);
+        Grid.SetRow(tabs, 1);
         Grid.SetRow(status, 2);
         Content = new Grid
         {
             RowDefinitions = RowDefinitions.Parse("Auto,*,Auto"),
-            Children = { header, body, status },
+            Children = { header, tabs, status },
         };
         workflow.CreateProject(projectName.Text!);
         Refresh();
@@ -125,7 +129,8 @@ public sealed class MainWindow : Window
                 throw new InvalidOperationException("DXF 中没有可编辑的闭合轮廓。");
             var viewModel = new CadWorkbenchViewModel();
             viewModel.LoadLoops(loops);
-            Content = new CadWorkbenchView(viewModel);
+            workbenchTab.Content = new CadWorkbenchView(viewModel);
+            tabs.SelectedItem = workbenchTab;
         }
         catch (Exception exception)
         {
