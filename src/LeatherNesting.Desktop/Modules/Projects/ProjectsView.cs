@@ -9,12 +9,18 @@ namespace LeatherNesting.Desktop.Modules.Projects;
 /// <summary>M01: project &amp; order centre demo page.</summary>
 public sealed class ProjectsView : UserControl
 {
-    private readonly ProjectsViewModel _viewModel = new();
+    private readonly ProjectsViewModel _viewModel;
     private readonly TextBlock _todoMessage = new() { Foreground = AppTheme.TodoAmber, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _versionDetail = new() { Foreground = AppTheme.TextMuted, TextWrapping = TextWrapping.Wrap };
 
     public ProjectsView()
+        : this(new ProjectsViewModel())
     {
+    }
+
+    public ProjectsView(ProjectsViewModel viewModel)
+    {
+        _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         Content = BuildLayout();
     }
 
@@ -80,7 +86,11 @@ public sealed class ProjectsView : UserControl
                 Content = $"{entry.Version} · {entry.Date}",
                 HorizontalAlignment = HorizontalAlignment.Left,
             };
-            button.Click += (_, _) => _versionDetail.Text = $"{entry.Version}（{entry.Date}）：{entry.Summary}";
+            button.Click += (_, _) =>
+            {
+                _viewModel.SelectVersion(entry);
+                _versionDetail.Text = _viewModel.SelectedVersionDetail;
+            };
             list.Children.Add(button);
         }
         list.Children.Add(_versionDetail);
@@ -95,9 +105,9 @@ public sealed class ProjectsView : UserControl
         return list;
     }
 
-    private static Control StatusTrace() => new TextBlock
+    private Control StatusTrace() => new TextBlock
     {
-        Text = "草稿 → 导入待确认 → 可配置 → 排样中 → 已完成 → 校验通过 → 已批准 → 已导出",
+        Text = string.Join(" → ", _viewModel.StatusTrace),
         Foreground = AppTheme.TextMuted,
         TextWrapping = TextWrapping.Wrap,
     };
