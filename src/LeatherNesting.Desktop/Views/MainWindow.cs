@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.Shell;
 
 namespace LeatherNesting.Desktop.Views;
@@ -13,6 +14,6 @@ public sealed class MainWindow : Window
         MinHeight = 640;
         Width = 1366;
         Height = 768;
-        Content = new AppShellView();
+        Content = new AppShellView(DesktopComposition.CreateShellViewModel());
     }
 }
