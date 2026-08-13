@@ -69,3 +69,18 @@ if (command.IsPlaceholderAction)
 For cross-platform toolbar artwork, use Avalonia vector shapes or geometry. Do not use font glyphs or network-loaded bitmaps: installed fonts differ between Windows and macOS, and a missing glyph turns an important command into an unreadable placeholder.
 
 Required tests assert command label/order, unique icon keys, target module IDs, icon-before-label composition, TODO behavior for placeholder actions, and horizontal access at narrow widths.
+
+### Persistent workstation shell
+
+The nesting workstation is a persistent multi-pane surface, not a router that replaces the whole body for each business capability. The shell owns stable host regions; modules contribute content to those hosts without embedding a second complete page, toolbar, inspector, status bar, or ruler set.
+
+```csharp
+// Shell geometry remains stable while child content changes.
+BodyColumns = "13*,74*,13*";
+LeftRows = "20*,60*,20*";
+RightRows = "62*,38*";
+```
+
+Wrong: placing a complete `CadCanvasView` (including its own surrounding UI) inside the center canvas host. Correct: keep the current module selected/cached, and bind only its canvas/content contract into the shell's existing center surface.
+
+Tests must assert host count/order and prevent nested scroll viewers, duplicate rulers, duplicate toolbars, or full module pages in the center canvas.

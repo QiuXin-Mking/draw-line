@@ -10,6 +10,7 @@ using Xunit;
 
 namespace LeatherNesting.Desktop.Tests.Shell;
 
+[Collection("Avalonia UI")]
 public sealed class TopCommandAreaTests
 {
     private static readonly string[] ExpectedMenuLabels =
@@ -119,18 +120,17 @@ public sealed class TopCommandAreaTests
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "TOP-005")]
-    public void Shell_uses_a_flexible_workspace_and_fixed_inspector_without_the_legacy_module_nav()
+    public void Shell_uses_the_persistent_three_column_workstation_body_without_legacy_module_nav()
     {
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
         var layout = Assert.IsType<Grid>(shell.Content);
 
-        Assert.Equal(2, layout.ColumnDefinitions.Count);
+        Assert.Single(layout.ColumnDefinitions);
         Assert.Equal(GridLength.Star, layout.ColumnDefinitions[0].Width);
-        Assert.Equal(new GridLength(300), layout.ColumnDefinitions[1].Width);
-        Assert.Equal(4, layout.Children.Count);
+        Assert.Equal(3, layout.Children.Count);
         Assert.DoesNotContain(layout.Children, child => Grid.GetRowSpan(child) == 3);
-        Assert.Equal(0, Grid.GetColumn(shell.WorkspaceContent));
-        Assert.Equal(1, Grid.GetRow(shell.WorkspaceContent));
+        Assert.Equal(1, Grid.GetColumn(shell.CanvasSurface));
+        Assert.Equal(0, Grid.GetRow(shell.WorkspaceContent));
     }
 
     [Fact]

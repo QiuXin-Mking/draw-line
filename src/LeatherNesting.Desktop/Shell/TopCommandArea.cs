@@ -44,12 +44,68 @@ public sealed class TopCommandArea : Border
             Background = AppTheme.ToolbarBackground,
         };
 
+        ProductTitle = new TextBlock
+        {
+            Text = "LeatherNesting 卷料智能排样系统",
+            Foreground = Brushes.White,
+            FontSize = 12,
+            FontWeight = FontWeight.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0),
+        };
+        UnitSelector = new ComboBox
+        {
+            ItemsSource = new[] { "单位：米(m)", "单位：毫米(mm)" },
+            SelectedIndex = 0,
+            Width = 126,
+            Height = 28,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        OperatorText = new TextBox
+        {
+            Text = "演示员",
+            FontSize = 12,
+            Width = 92,
+            Height = 28,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        var operatorArea = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0),
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = "操作员：",
+                    FontSize = 12,
+                    VerticalAlignment = VerticalAlignment.Center,
+                },
+                OperatorText,
+            },
+        };
+
+        var titleBar = new Border
+        {
+            Height = AppTheme.TitleBarHeight,
+            Background = AppTheme.ClassicTitleBackground,
+            Child = ProductTitle,
+        };
+        var toolbarRow = new Grid
+        {
+            ColumnDefinitions = ColumnDefinitions.Parse("*,Auto,Auto"),
+            Children = { ToolbarScrollViewer, UnitSelector, operatorArea },
+        };
+        Grid.SetColumn(UnitSelector, 1);
+        Grid.SetColumn(operatorArea, 2);
+
         Background = AppTheme.ToolbarBackground;
         BorderBrush = AppTheme.ToolbarBorder;
         BorderThickness = new Thickness(0, 0, 0, 1);
         Child = new StackPanel
         {
-            Children = { menu, ToolbarScrollViewer },
+            Children = { titleBar, menu, toolbarRow },
         };
     }
 
@@ -58,6 +114,12 @@ public sealed class TopCommandArea : Border
     public IReadOnlyList<ShellToolbarButton> CommandButtons { get; }
 
     public ScrollViewer ToolbarScrollViewer { get; }
+
+    public TextBlock ProductTitle { get; }
+
+    public ComboBox UnitSelector { get; }
+
+    public TextBox OperatorText { get; }
 
     private static MenuItem CreateMenuItem(string label) => new()
     {

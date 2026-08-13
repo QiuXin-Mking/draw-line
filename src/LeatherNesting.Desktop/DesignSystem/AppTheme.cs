@@ -5,10 +5,13 @@ namespace LeatherNesting.Desktop.DesignSystem;
 /// <summary>Central colour/brush palette for the demo shell. Dark CAD workspace + light admin accents.</summary>
 public static class AppTheme
 {
+    public const double TitleBarHeight = 26;
     public const double MenuBarHeight = 30;
     public const double ToolbarHeight = 76;
     public const double ToolbarButtonWidth = 82;
     public const double ToolbarIconSize = 34;
+    public const double ClassicHeaderHeight = 23;
+    public const double StatusBarHeight = 24;
 
     public static IBrush WorkspaceBackground { get; } = new SolidColorBrush(Color.FromRgb(0x1E, 0x24, 0x2B));
     public static IBrush NavBackground { get; } = new SolidColorBrush(Color.FromRgb(0x2A, 0x33, 0x3D));
@@ -27,4 +30,12 @@ public static class AppTheme
     public static IBrush ToolbarAccent { get; } = new SolidColorBrush(Color.FromRgb(0x38, 0xB9, 0xA8));
     public static IBrush ToolbarDanger { get; } = new SolidColorBrush(Color.FromRgb(0xCE, 0x4A, 0x4A));
     public static IBrush ToolbarWarning { get; } = new SolidColorBrush(Color.FromRgb(0xE3, 0x91, 0x2D));
+    public static IBrush ClassicTitleBackground { get; } = new SolidColorBrush(Color.FromRgb(0x17, 0x4D, 0x46));
+    public static IBrush ClassicPanelBackground { get; } = new SolidColorBrush(Color.FromRgb(0xEF, 0xF0, 0xEC));
+    public static IBrush ClassicHeaderBackground { get; } = new SolidColorBrush(Color.FromRgb(0xD7, 0xDE, 0xD9));
+    public static IBrush ClassicBorder { get; } = new SolidColorBrush(Color.FromRgb(0x83, 0x8A, 0x87));
+    public static IBrush CadCanvasBackground { get; } = new SolidColorBrush(Color.FromRgb(0x00, 0x00, 0x00));
+    public static IBrush RulerBackground { get; } = new SolidColorBrush(Color.FromRgb(0x31, 0x35, 0x35));
+    public static IBrush RulerForeground { get; } = new SolidColorBrush(Color.FromRgb(0xD8, 0xDC, 0xDA));
+    public static IBrush DemoPanelBackground { get; } = new SolidColorBrush(Color.FromRgb(0xD5, 0xEF, 0xEE));
 }
