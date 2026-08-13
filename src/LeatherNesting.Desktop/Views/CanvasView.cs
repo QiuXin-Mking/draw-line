@@ -17,6 +17,7 @@ public sealed class CanvasView : Control
     private Point _offset;
     private bool _fitPending = true;
     private Point _lastPointer;
+    private Size _lastSize;
 
     /// <summary>Updates the loops to draw and re-fits the view.</summary>
     public void SetData(IReadOnlyList<Loop2D>? loops)
@@ -24,6 +25,18 @@ public sealed class CanvasView : Control
         _loops = loops ?? [];
         _fitPending = true;
         InvalidateVisual();
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        var result = base.ArrangeOverride(finalSize);
+        if (_lastSize != finalSize)
+        {
+            _lastSize = finalSize;
+            _fitPending = true;
+            InvalidateVisual();
+        }
+        return result;
     }
 
     public override void Render(DrawingContext context)
