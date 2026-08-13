@@ -1,5 +1,6 @@
 using LeatherNesting.Desktop.Modules;
 using LeatherNesting.Desktop.Modules.Import;
+using LeatherNesting.Desktop.Modules.Projects;
 
 namespace LeatherNesting.Desktop.Shell;
 
@@ -13,7 +14,7 @@ public sealed class AppShellViewModel
 
     private static IReadOnlyList<ModuleDescriptor> CreateModules() =>
     [
-        new("M01", "项目与订单", "项目", false, () => new ModulePlaceholderView("M01", "项目与订单")),
+        new("M01", "项目与订单", "项目", false, () => new ProjectsView()),
         new("M02", "DXF 导入", "项目", true, () => new ImportView()),
         new("M03", "CAD 画布", "CAD 工作台", false, () => new ModulePlaceholderView("M03", "CAD 画布")),
         new("M04", "几何修复", "CAD 工作台", false, () => new ModulePlaceholderView("M04", "几何修复")),
