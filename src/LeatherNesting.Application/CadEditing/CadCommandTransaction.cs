@@ -23,13 +23,18 @@ public sealed class CadCommandTransaction
         var result = command.Execute(context);
         if (!result.Success) return result;
 
+        Record(command);
+        return result;
+    }
+
+    /// <summary>Records an already-executed command to the undo stack without re-running it.</summary>
+    public void Record(CadCommand command)
+    {
         _undoStack.Add(command);
         _redoStack.Clear();
 
         if (_undoStack.Count > _maxUndoDepth)
             _undoStack.RemoveAt(0);
-
-        return result;
     }
 
     /// <summary>Undoes the last command and returns the restored state.</summary>

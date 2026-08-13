@@ -51,102 +51,57 @@ public sealed class CadWorkbenchViewModel
 
     public void PreviewClose()
     {
-        if (_session is null) return;
-        var loops = _session.PreviewLoops;
-        var closer = new ContourCloser();
-        var allRepaired = new List<Loop2D>();
-        foreach (var loop in loops)
+        var loop = _session?.PreviewLoops.FirstOrDefault();
+        if (loop is null)
         {
-            var result = closer.Close(loop);
-            allRepaired.AddRange(result.RepairedLoops);
+            _problemMessages.Add("没有可闭合的轮廓。");
+            return;
         }
-        // For preview, just update the display
-        _state = WorkbenchState.Previewing;
+        RunPreview(new CloseContourCommand(loop.StableId));
     }
 
-    public void PreviewGapRepair()
-    {
-        if (_session is null) return;
-        var loops = _session.PreviewLoops;
-        // Flatten all curves to repair
-        var allCurves = loops.SelectMany(l => l.Curves).ToList();
-        var repair = new GapRepair();
-        var result = repair.Repair(allCurves, "workbench");
-        _state = WorkbenchState.Previewing;
-        _problemMessages.Clear();
-        _problemMessages.AddRange(result.Diagnostics);
-        _problemMessages.AddRange(result.Warnings);
-    }
+    public void PreviewGapRepair() => RunPreview(new GapRepairCommand());
 
-    public void PreviewBoundaryGeneration()
-    {
-        if (_session is null) return;
-        var loops = _session.PreviewLoops;
-        var allCurves = loops.SelectMany(l => l.Curves).ToList();
-        var generator = new BoundaryGenerator();
-        var result = generator.Generate(allCurves, "workbench");
-        _state = WorkbenchState.Previewing;
-        _problemMessages.Clear();
-        _problemMessages.AddRange(result.Diagnostics);
-        if (result.ValidCandidates.Count > 1)
-            _problemMessages.Add($"发现 {result.ValidCandidates.Count} 个候选环，请选择。");
-    }
+    public void PreviewBoundaryGeneration() => RunPreview(new BoundaryGenerateCommand());
 
     // --- Offset ---
 
     public void PreviewOffset(double distanceMm, OffsetDirection direction, OffsetJoinStyle joinStyle = OffsetJoinStyle.Miter)
-    {
-        if (_session is null) return;
-        var adapter = new OffsetAdapter();
-        var result = adapter.Offset(_session.PreviewLoops, distanceMm, direction, joinStyle);
-        _state = WorkbenchState.Previewing;
-        _problemMessages.Clear();
-        _problemMessages.AddRange(result.Diagnostics);
-        _problemMessages.AddRange(result.TopologyWarnings);
-        if (result.RequiresConfirmation)
-            _problemMessages.Add("offset 导致拓扑变化，需要确认。");
-    }
+        => RunPreview(new OffsetCommand(distanceMm, direction, joinStyle));
 
     // --- Node Edit ---
 
     public void PreviewInsertNode(Point2D point)
     {
-        if (_session is null || _session.PreviewLoops.Count == 0) return;
-        var ops = new NodeOperations();
-        foreach (var loop in _session.PreviewLoops)
+        var loop = _session?.PreviewLoops.FirstOrDefault();
+        if (loop is null)
         {
-            var result = ops.InsertNode(loop, point);
-            if (result.Success)
-            {
-                _state = WorkbenchState.Previewing;
-                return;
-            }
-            _problemMessages.AddRange(result.Issues);
+            _problemMessages.Add("没有可编辑的轮廓。");
+            return;
         }
+        RunPreview(new InsertNodeCommand(loop.StableId, point));
     }
 
     public void PreviewMoveNode(int nodeIndex, Point2D newPosition)
     {
-        if (_session is null || _session.PreviewLoops.Count == 0) return;
-        var ops = new NodeOperations();
-        foreach (var loop in _session.PreviewLoops)
+        var loop = _session?.PreviewLoops.FirstOrDefault();
+        if (loop is null)
         {
-            var result = ops.MoveNode(loop, nodeIndex, newPosition);
-            if (result.Success) { _state = WorkbenchState.Previewing; return; }
-            _problemMessages.AddRange(result.Issues);
+            _problemMessages.Add("没有可编辑的轮廓。");
+            return;
         }
+        RunPreview(new MoveNodeCommand(loop.StableId, nodeIndex, newPosition));
     }
 
     public void PreviewDeleteNode(int nodeIndex)
     {
-        if (_session is null || _session.PreviewLoops.Count == 0) return;
-        var ops = new NodeOperations();
-        foreach (var loop in _session.PreviewLoops)
+        var loop = _session?.PreviewLoops.FirstOrDefault();
+        if (loop is null)
         {
-            var result = ops.DeleteNode(loop, nodeIndex);
-            if (result.Success) { _state = WorkbenchState.Previewing; return; }
-            _problemMessages.AddRange(result.Issues);
+            _problemMessages.Add("没有可编辑的轮廓。");
+            return;
         }
+        RunPreview(new DeleteNodeCommand(loop.StableId, nodeIndex));
     }
 
     // --- Break ---
@@ -232,5 +187,15 @@ public sealed class CadWorkbenchViewModel
         _problemMessages.Clear();
         _problemMessages.AddRange(result.Diagnostics);
         _state = WorkbenchState.Ready;
+    }
+
+    private void RunPreview(LoopTransformCommand command)
+    {
+        if (_session is null) return;
+        var result = _session.Preview(command);
+        _problemMessages.Clear();
+        _problemMessages.AddRange(result.Diagnostics);
+        if (result.Success)
+            _state = WorkbenchState.Previewing;
     }
 }

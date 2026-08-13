@@ -36,20 +36,16 @@ public sealed class CadOperationSession
         return result;
     }
 
-    /// <summary>Commits the pending preview to the undo stack.</summary>
+    /// <summary>Commits the pending preview to the undo stack. Does not re-run the command.</summary>
     public CadCommandResult Commit()
     {
         if (_pendingCommand is null)
             return CadCommandResult.Failed(["没有待提交的预览操作。"]);
 
-        var context = new CadCommandContext { CurrentLoops = _previewLoops };
-        var result = _transaction.Commit(_pendingCommand, context);
-        if (result.Success)
-        {
-            _pendingCommand = null;
-            _isPreviewing = false;
-        }
-        return result;
+        _transaction.Record(_pendingCommand);
+        _pendingCommand = null;
+        _isPreviewing = false;
+        return new CadCommandResult(_previewLoops);
     }
 
     /// <summary>Discards the pending preview and restores the last committed state.</summary>

@@ -101,6 +101,57 @@ public sealed class CadCommandTests
         Assert.Equal(loop.StableId, restored.StableId);
         Assert.Equal(loop.Area, restored.Area, 6);
     }
+
+    [Fact]
+    [Trait("Stage", "2")]
+    [Trait("TestId", "P2-NOD-001")]
+    public void Break_at_point_command_opens_contour_and_undo_restores()
+    {
+        var loop = new Loop2D("l1", LoopRole.Outer, [
+            new LineSegment2D(new(0, 0), new(100, 0)),
+            new LineSegment2D(new(100, 0), new(100, 50)),
+            new LineSegment2D(new(100, 50), new(0, 50)),
+            new LineSegment2D(new(0, 50), new(0, 0)),
+        ]);
+
+        var command = new BreakAtPointCommand("l1", new Point2D(50, 0));
+        var context = new CadCommandContext { CurrentLoops = [loop] };
+
+        var result = command.Execute(context);
+        Assert.True(result.Success);
+        Assert.Single(result.ResultLoops);
+        // Breaking splits the bottom edge, so the open contour has more curves.
+        Assert.True(result.ResultLoops[0].Curves.Count > loop.Curves.Count);
+
+        var undo = command.Undo(context);
+        Assert.True(undo.Success);
+        Assert.Equal(loop.Curves.Count, undo.ResultLoops[0].Curves.Count);
+    }
+
+    [Fact]
+    [Trait("Stage", "2")]
+    [Trait("TestId", "P2-NOD-001")]
+    public void Remove_segment_command_removes_segment_and_undo_restores()
+    {
+        var loop = new Loop2D("l1", LoopRole.Outer, [
+            new LineSegment2D(new(0, 0), new(100, 0)),
+            new LineSegment2D(new(100, 0), new(100, 50)),
+            new LineSegment2D(new(100, 50), new(0, 50)),
+            new LineSegment2D(new(0, 50), new(0, 0)),
+        ]);
+
+        var command = new RemoveSegmentCommand("l1", new Point2D(0, 0), new Point2D(100, 0));
+        var context = new CadCommandContext { CurrentLoops = [loop] };
+
+        var result = command.Execute(context);
+        Assert.True(result.Success);
+        Assert.Single(result.ResultLoops);
+        Assert.True(result.ResultLoops[0].Curves.Count < loop.Curves.Count);
+
+        var undo = command.Undo(context);
+        Assert.True(undo.Success);
+        Assert.Equal(4, undo.ResultLoops[0].Curves.Count);
+    }
 }
 
 /// <summary>A test command that adds a loop to the context.</summary>

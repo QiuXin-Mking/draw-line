@@ -36,13 +36,15 @@ public sealed class MainWindow : Window
         cancel.Click += (_, _) => { workflow.CancelImport(); Refresh(); };
         var save = new Button { Content = "保存项目…" };
         save.Click += async (_, _) => await SaveAsync();
+        var enterWorkbench = new Button { Content = "进入工艺工作台" };
+        enterWorkbench.Click += async (_, _) => await EnterWorkbenchAsync();
 
         var header = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 8,
             Margin = new Avalonia.Thickness(16),
-            Children = { new TextBlock { Text = "项目名称", VerticalAlignment = VerticalAlignment.Center }, projectName, newProject, save },
+            Children = { new TextBlock { Text = "项目名称", VerticalAlignment = VerticalAlignment.Center }, projectName, newProject, save, enterWorkbench },
         };
         var body = new StackPanel
         {
@@ -110,6 +112,25 @@ public sealed class MainWindow : Window
         }
         catch (Exception exception) { diagnostics.Text = $"Blocking · UI-SAVE · {exception.Message}"; }
         Refresh();
+    }
+
+    private async Task EnterWorkbenchAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(sourcePath.Text) || !File.Exists(sourcePath.Text))
+                throw new InvalidOperationException("请先选择并检查一个 DXF 文件。");
+            var loops = await new AsciiDxfGeometryReader().ReadAsync(sourcePath.Text, CancellationToken.None);
+            if (loops.Count == 0)
+                throw new InvalidOperationException("DXF 中没有可编辑的闭合轮廓。");
+            var viewModel = new CadWorkbenchViewModel();
+            viewModel.LoadLoops(loops);
+            Content = new CadWorkbenchView(viewModel);
+        }
+        catch (Exception exception)
+        {
+            diagnostics.Text = $"Blocking · UI-WORKBENCH · {exception.Message}";
+        }
     }
 
     private void Refresh()

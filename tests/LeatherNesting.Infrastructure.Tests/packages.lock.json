@@ -114,7 +114,8 @@
         "type": "Project",
         "dependencies": {
           "LeatherNesting.Application": "[1.0.0, )",
-          "LeatherNesting.Domain": "[1.0.0, )"
+          "LeatherNesting.Domain": "[1.0.0, )",
+          "LeatherNesting.Geometry": "[1.0.0, )"
         }
       },
       "Clipper2": {
