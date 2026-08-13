@@ -23,7 +23,7 @@ public sealed class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Leather Nesting — DXF 导入检查器";
+        Title = "Leather Nesting";
         MinWidth = 1024;
         MinHeight = 640;
         Width = 1366;
@@ -32,7 +32,7 @@ public sealed class MainWindow : Window
         newProject.Click += (_, _) => { workflow.CreateProject(projectName.Text ?? "新项目"); Refresh(); };
         var browse = new Button { Content = "选择 DXF…" };
         browse.Click += async (_, _) => await BrowseAsync();
-        var inspect = new Button { Content = "检查 DXF" };
+        var inspect = new Button { Content = "导入 DXF" };
         inspect.Click += async (_, _) => await InspectAsync();
         confirm.Click += (_, _) => { workflow.ConfirmMillimetres(); Refresh(); };
         cancel.Click += (_, _) => { workflow.CancelImport(); Refresh(); };
@@ -54,13 +54,13 @@ public sealed class MainWindow : Window
             Margin = new Avalonia.Thickness(16),
             Children =
             {
-                new TextBlock { Text = "阶段 1：检查 DXF、确认单位后导入；未确认前不会修改项目。", FontSize = 16 },
+                new TextBlock { Text = "导入裁片 DXF 文件", FontSize = 16 },
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { sourcePath, browse, inspect, confirm, cancel } },
-                new TextBlock { Text = "导入诊断" },
+                new TextBlock { Text = "导入信息" },
                 diagnostics,
             },
         };
-        tabs.Items.Add(new TabItem { Header = "导入检查", Content = body });
+        tabs.Items.Add(new TabItem { Header = "导入", Content = body });
         tabs.Items.Add(workbenchTab);
         Grid.SetRow(tabs, 1);
         Grid.SetRow(status, 2);
@@ -151,7 +151,7 @@ public sealed class MainWindow : Window
             diagnostics.Text = $"DXF 声明单位：{FormatUnit(inspection.DeclaredUnit)}（必须人工确认）\n图层：{(layers.Length == 0 ? "无可识别实体" : string.Join("、", layers))}\n" +
                 string.Join(Environment.NewLine, workflow.Diagnostics.Select(item => $"{item.Severity} · {item.Code} · {item.Message}"));
         }
-        else if (string.IsNullOrWhiteSpace(diagnostics.Text)) diagnostics.Text = "尚未检查 DXF。";
+        else if (string.IsNullOrWhiteSpace(diagnostics.Text)) diagnostics.Text = "尚未导入 DXF。";
     }
 
     private static string FormatUnit(DxfDeclaredUnit unit) => unit switch

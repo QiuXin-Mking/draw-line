@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using LeatherNesting.Desktop.ViewModels;
+using LeatherNesting.Geometry.Offset;
 
 namespace LeatherNesting.Desktop.Views;
 
@@ -15,6 +16,17 @@ public sealed class CadWorkbenchView : UserControl
         _viewModel = viewModel;
         Content = BuildLayout();
         RefreshCanvas();
+        _canvas.OnClick = point =>
+        {
+            _viewModel.SelectPiece(point);
+            _canvas.SelectedLoopId = _viewModel.SelectedLoopId;
+            _canvas.InvalidateVisual();
+        };
+        _canvas.OnDrag = delta =>
+        {
+            _viewModel.MoveSelected(delta);
+            _canvas.SetData(_viewModel.CurrentLoops, refit: false);
+        };
     }
 
     private Control BuildLayout()
@@ -44,6 +56,9 @@ public sealed class CadWorkbenchView : UserControl
             toolbar.Children.Add(button);
         }
 
+        var offsetDistance = new TextBox { Text = "1", Width = 70, PlaceholderText = "offset mm" };
+        toolbar.Children.Add(offsetDistance);
+
         mainGrid.Children.Add(toolbar);
         Grid.SetRow(toolbar, 0);
 
@@ -67,7 +82,7 @@ public sealed class CadWorkbenchView : UserControl
             Content = "Preview",
             IsEnabled = _viewModel.CanPreview,
         };
-        previewButton.Click += (_, _) => { /* Triggered by tool action */ };
+        previewButton.Click += (_, _) => { PreviewByTool(offsetDistance); RefreshCanvas(); };
         statusBar.Children.Add(previewButton);
 
         var commitButton = new Button
@@ -102,6 +117,10 @@ public sealed class CadWorkbenchView : UserControl
         redoButton.Click += (_, _) => { _viewModel.Redo(); RefreshCanvas(); };
         statusBar.Children.Add(redoButton);
 
+        var rotateButton = new Button { Content = "旋转 +15°" };
+        rotateButton.Click += (_, _) => { _viewModel.RotateSelected(15); RefreshCanvas(); };
+        statusBar.Children.Add(rotateButton);
+
         mainGrid.Children.Add(statusBar);
         Grid.SetRow(statusBar, 2);
 
@@ -109,6 +128,20 @@ public sealed class CadWorkbenchView : UserControl
     }
 
     private void RefreshCanvas() => _canvas.SetData(_viewModel.CurrentLoops);
+
+    private void PreviewByTool(TextBox offsetDistance)
+    {
+        switch (_viewModel.ToolMode)
+        {
+            case CadToolMode.BoundaryRepair:
+                _viewModel.PreviewClose();
+                break;
+            case CadToolMode.Offset:
+                if (double.TryParse(offsetDistance.Text, out var distance))
+                    _viewModel.PreviewOffset(distance, OffsetDirection.Inside);
+                break;
+        }
+    }
 
     private static string FormatToolMode(CadToolMode mode) => mode switch
     {

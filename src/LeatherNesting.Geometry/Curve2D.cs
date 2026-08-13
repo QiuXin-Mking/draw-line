@@ -61,6 +61,20 @@ public sealed record CircularArc2D : Curve2D
         var rad = degrees * Math.PI / 180;
         return new(Centre.X + Radius * Math.Cos(rad), Centre.Y + Radius * Math.Sin(rad));
     }
+
+    /// <summary>Returns true if the point lies on the arc (within tolerance), for intersection tests.</summary>
+    public bool ContainsPoint(Point2D point, double tolerance = 1e-6)
+    {
+        if (Math.Abs(point.DistanceTo(Centre) - Radius) > tolerance)
+            return false;
+
+        var angle = Math.Atan2(point.Y - Centre.Y, point.X - Centre.X) * 180 / Math.PI;
+        var delta = (angle - StartAngleDegrees) % 360;
+        if (delta < 0) delta += 360;
+        return SweepAngleDegrees >= 0
+            ? delta <= SweepAngleDegrees + tolerance
+            : delta >= 360 + SweepAngleDegrees - tolerance;
+    }
 }
 
 /// <summary>Polyline composed of a sequence of connected points.</summary>

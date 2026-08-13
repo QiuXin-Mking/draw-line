@@ -15,6 +15,56 @@ public sealed record Loop2D
     /// <summary>Total perimeter length of the loop, in mm.</summary>
     public double Length => Curves.Sum(c => c.Length);
 
+    /// <summary>Returns true if the point is inside the loop (ray-casting point-in-polygon).</summary>
+    public bool ContainsPoint(Point2D point)
+    {
+        var intersections = 0;
+        foreach (var curve in Curves)
+        foreach (var (start, end) in FlattenToSegments(curve))
+        {
+            if (point.Y < Math.Min(start.Y, end.Y) || point.Y >= Math.Max(start.Y, end.Y)) continue;
+            if (start.Y == end.Y) continue;
+            var xIntersect = start.X + (point.Y - start.Y) * (end.X - start.X) / (end.Y - start.Y);
+            if (xIntersect > point.X) intersections++;
+        }
+        return intersections % 2 == 1;
+    }
+
+    private static IReadOnlyList<(Point2D Start, Point2D End)> FlattenToSegments(Curve2D curve) => curve switch
+    {
+        LineSegment2D l => [(l.Start, l.End)],
+        Polyline2D p => Enumerable.Range(0, p.Points.Count - 1).Select(i => (p.Points[i], p.Points[i + 1])).ToList(),
+        CircularArc2D a => [(a.StartPoint, a.EndPoint)],
+        _ => []
+    };
+
+    /// <summary>Bounding box of the loop, in mm.</summary>
+    public (double MinX, double MinY, double MaxX, double MaxY) Bounds
+    {
+        get
+        {
+            var minX = double.MaxValue; var minY = double.MaxValue;
+            var maxX = double.MinValue; var maxY = double.MinValue;
+            foreach (var curve in Curves)
+            {
+                var (cMinX, cMinY, cMaxX, cMaxY) = curve.Bounds;
+                minX = Math.Min(minX, cMinX); minY = Math.Min(minY, cMinY);
+                maxX = Math.Max(maxX, cMaxX); maxY = Math.Max(maxY, cMaxY);
+            }
+            return (minX, minY, maxX, maxY);
+        }
+    }
+
+    /// <summary>Centre of the loop's bounding box, used as the default rotation pivot.</summary>
+    public Point2D Centroid
+    {
+        get
+        {
+            var (minX, minY, maxX, maxY) = Bounds;
+            return new Point2D((minX + maxX) / 2, (minY + maxY) / 2);
+        }
+    }
+
     public Loop2D(string stableId, LoopRole role, IReadOnlyList<Curve2D> curves)
     {
         if (string.IsNullOrWhiteSpace(stableId))
@@ -111,9 +161,17 @@ public sealed record Loop2D
                     sum += poly.Points[i].X * poly.Points[i + 1].Y - poly.Points[i + 1].X * poly.Points[i].Y;
             else if (curve is CircularArc2D arc)
             {
-                // Approximate as chord for area; real arc-aware area is Stage 3+
-                var start = arc.StartPoint; var end = arc.EndPoint;
-                sum += start.X * end.Y - end.X * start.Y;
+                // Exact arc-aware area via Green's theorem:
+                // r²·sweep + r·(cx·(sinθ₂−sinθ₁) − cy·(cosθ₂−cosθ₁))
+                var startAngle = arc.StartAngleDegrees * Math.PI / 180;
+                var sweep = arc.SweepAngleDegrees * Math.PI / 180;
+                var endAngle = startAngle + sweep;
+                var cx = arc.Centre.X;
+                var cy = arc.Centre.Y;
+                var r = arc.Radius;
+                sum += r * r * sweep
+                     + r * cx * (Math.Sin(endAngle) - Math.Sin(startAngle))
+                     - r * cy * (Math.Cos(endAngle) - Math.Cos(startAngle));
             }
         }
         return Math.Abs(sum) / 2.0;

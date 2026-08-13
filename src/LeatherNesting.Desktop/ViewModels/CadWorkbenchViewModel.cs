@@ -158,6 +158,30 @@ public sealed class CadWorkbenchViewModel
         if (validation.IsValid) _state = WorkbenchState.Previewing;
     }
 
+    // --- Selection & Transform ---
+
+    public string? SelectedLoopId { get; private set; }
+
+    public void SelectPiece(Point2D point)
+    {
+        if (_session is null) return;
+        SelectedLoopId = _session.PreviewLoops.LastOrDefault(l => l.ContainsPoint(point))?.StableId;
+    }
+
+    public void MoveSelected(Point2D delta)
+    {
+        if (_session is null || SelectedLoopId is null) return;
+        RunPreview(new TransformCommand(SelectedLoopId, new Transform2D(delta.X, delta.Y, 0, false)));
+    }
+
+    public void RotateSelected(double degrees)
+    {
+        if (_session is null || SelectedLoopId is null) return;
+        var loop = _session.PreviewLoops.FirstOrDefault(l => l.StableId == SelectedLoopId);
+        if (loop is null) return;
+        RunPreview(new TransformCommand(SelectedLoopId, Transform2D.RotateAbout(loop.Centroid, degrees)));
+    }
+
     // --- Commit / Cancel ---
 
     public void Commit()

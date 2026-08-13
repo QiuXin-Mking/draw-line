@@ -1,3 +1,5 @@
+using LeatherNesting.Geometry.Intersection;
+
 namespace LeatherNesting.Geometry.Topology;
 
 /// <summary>A candidate face (closed loop) extracted from the planar graph, requiring user selection.</summary>
@@ -48,8 +50,16 @@ public sealed record FaceCandidate
                     sum += p.Points[i].X * p.Points[i + 1].Y - p.Points[i + 1].X * p.Points[i].Y;
             else if (curve is CircularArc2D a)
             {
-                var s = a.StartPoint; var e = a.EndPoint;
-                sum += s.X * e.Y - e.X * s.Y;
+                // Exact arc-aware area via Green's theorem.
+                var startAngle = a.StartAngleDegrees * Math.PI / 180;
+                var sweep = a.SweepAngleDegrees * Math.PI / 180;
+                var endAngle = startAngle + sweep;
+                var cx = a.Centre.X;
+                var cy = a.Centre.Y;
+                var r = a.Radius;
+                sum += r * r * sweep
+                     + r * cx * (Math.Sin(endAngle) - Math.Sin(startAngle))
+                     - r * cy * (Math.Cos(endAngle) - Math.Cos(startAngle));
             }
         }
         return Math.Abs(sum) / 2.0;
@@ -57,40 +67,23 @@ public sealed record FaceCandidate
 
     private static bool CheckSelfIntersection(IReadOnlyList<Curve2D> curves, ToleranceProfile tolerance, List<string> issues)
     {
-        // Simplified: check for bow-tie and self-intersecting patterns
-        // Full implementation in a later iteration with curve-curve intersection
         if (curves.Count < 3)
         {
             issues.Add("候选面少于 3 条边。");
             return false;
         }
 
-        var lineSegments = curves.SelectMany(c => c is LineSegment2D l
-            ? [l] : c is Polyline2D p
-            ? Enumerable.Range(0, p.Points.Count - 1).Select(i => new LineSegment2D(p.Points[i], p.Points[i + 1]))
-            : []).ToList();
-
-        for (var i = 0; i < lineSegments.Count; i++)
-        for (var j = i + 1; j < lineSegments.Count; j++)
+        for (var i = 0; i < curves.Count; i++)
+        for (var j = i + 1; j < curves.Count; j++)
         {
-            if (j == i + 1 || (i == 0 && j == lineSegments.Count - 1)) continue;
-            if (LineSegmentsIntersectInterior(lineSegments[i], lineSegments[j]))
+            // Adjacent curves share an endpoint, which is not a self-intersection.
+            if (j == i + 1 || (i == 0 && j == curves.Count - 1)) continue;
+            if (CurveIntersection.CurvesIntersect(curves[i], curves[j]))
             {
                 issues.Add("检测到自交（bow-tie 或类似模式）。");
                 return true;
             }
         }
         return false;
-    }
-
-    private static bool LineSegmentsIntersectInterior(LineSegment2D a, LineSegment2D b)
-    {
-        var (dx1, dy1) = (a.End.X - a.Start.X, a.End.Y - a.Start.Y);
-        var (dx2, dy2) = (b.End.X - b.Start.X, b.End.Y - b.Start.Y);
-        var denom = dx1 * dy2 - dy1 * dx2;
-        if (Math.Abs(denom) < 1e-12) return false;
-        var t = ((b.Start.X - a.Start.X) * dy2 - (b.Start.Y - a.Start.Y) * dx2) / denom;
-        var u = ((b.Start.X - a.Start.X) * dy1 - (b.Start.Y - a.Start.Y) * dx1) / denom;
-        return t is > 0.001 and < 0.999 && u is > 0.001 and < 0.999;
     }
 }

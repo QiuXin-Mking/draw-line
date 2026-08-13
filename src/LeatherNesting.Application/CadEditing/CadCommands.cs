@@ -201,3 +201,16 @@ public sealed record RemoveSegmentCommand(string loopId, Point2D pointA, Point2D
         return ReplaceLoop(context.CurrentLoops, index, openLoop);
     }
 }
+
+/// <summary>Applies a translation/rotation/mirror transform to a single loop.</summary>
+public sealed record TransformCommand(string loopId, Transform2D transform)
+    : LoopTransformCommand("变换裁片")
+{
+    protected override CadCommandResult Transform(CadCommandContext context)
+    {
+        var index = FindLoopIndex(context.CurrentLoops, loopId);
+        if (index < 0)
+            return CadCommandResult.Failed([$"未找到轮廓 {loopId}。"]);
+        return ReplaceLoop(context.CurrentLoops, index, transform.Apply(context.CurrentLoops[index]));
+    }
+}

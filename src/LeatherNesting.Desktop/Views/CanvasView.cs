@@ -6,11 +6,12 @@ using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Desktop.Views;
 
-/// <summary>Read-only CAD canvas: draws loops (mm, Y-up) into pixels (Y-down) with zoom/pan.</summary>
+/// <summary>CAD canvas: draws loops (mm, Y-up) into pixels (Y-down), with zoom/pan and click/drag selection.</summary>
 public sealed class CanvasView : Control
 {
     private static readonly IPen OuterPen = new Pen(Brushes.Navy, 1.5);
     private static readonly IPen HolePen = new Pen(Brushes.OrangeRed, 1.5);
+    private static readonly IPen SelectedPen = new Pen(Brushes.DodgerBlue, 3);
 
     private IReadOnlyList<Loop2D> _loops = [];
     private double _scale = 10.0; // pixels per mm
@@ -18,26 +19,29 @@ public sealed class CanvasView : Control
     private bool _fitPending = true;
     private Point _lastPointer;
     private Size _lastSize;
+    private Point2D _pressModel = Point2D.Origin;
+    private Point _pressPixel;
+    private bool _pressedOnPiece;
 
-    /// <summary>Updates the loops to draw and re-fits the view.</summary>
-    public void SetData(IReadOnlyList<Loop2D>? loops)
+    /// <summary>Loop currently highlighted (selected) on the canvas.</summary>
+    public string? SelectedLoopId { get; set; }
+
+    /// <summary>Invoked on a click (no drag) with the model-space point.</summary>
+    public Action<Point2D>? OnClick { get; set; }
+
+    /// <summary>Invoked on a drag release with the model-space delta.</summary>
+    public Action<Point2D>? OnDrag { get; set; }
+
+    /// <summary>Updates the loops to draw; re-fits the view unless <paramref name="refit"/> is false.</summary>
+    public void SetData(IReadOnlyList<Loop2D>? loops, bool refit = true)
     {
         _loops = loops ?? [];
-        _fitPending = true;
+        _fitPending = refit;
         InvalidateVisual();
     }
 
-    protected override Size ArrangeOverride(Size finalSize)
-    {
-        var result = base.ArrangeOverride(finalSize);
-        if (_lastSize != finalSize)
-        {
-            _lastSize = finalSize;
-            _fitPending = true;
-            InvalidateVisual();
-        }
-        return result;
-    }
+    /// <summary>Converts a pixel point to model-space millimetres.</summary>
+    public Point2D ToModel(Point pixel) => new((pixel.X - _offset.X) / _scale, (_offset.Y - pixel.Y) / _scale);
 
     public override void Render(DrawingContext context)
     {
@@ -54,10 +58,22 @@ public sealed class CanvasView : Control
 
         foreach (var loop in _loops)
         {
-            var pen = loop.Role == LoopRole.Outer ? OuterPen : HolePen;
+            var pen = loop.StableId == SelectedLoopId ? SelectedPen : loop.Role == LoopRole.Outer ? OuterPen : HolePen;
             foreach (var segment in FlattenLoop(loop))
                 context.DrawLine(pen, ToPixel(segment.Start), ToPixel(segment.End));
         }
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        var result = base.ArrangeOverride(finalSize);
+        if (_lastSize != finalSize)
+        {
+            _lastSize = finalSize;
+            _fitPending = true;
+            InvalidateVisual();
+        }
+        return result;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -66,7 +82,6 @@ public sealed class CanvasView : Control
             return;
         var factor = e.Delta.Y > 0 ? 1.1 : 1 / 1.1;
         var cursor = e.GetPosition(this);
-        // Keep the mm point under the cursor fixed while zooming.
         var mmX = (cursor.X - _offset.X) / _scale;
         var mmY = (_offset.Y - cursor.Y) / _scale;
         _scale *= factor;
@@ -76,7 +91,12 @@ public sealed class CanvasView : Control
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
-        _lastPointer = e.GetPosition(this);
+        var position = e.GetPosition(this);
+        _lastPointer = position;
+        _pressPixel = position;
+        _pressModel = ToModel(position);
+        _pressedOnPiece = _loops.Any(l => l.ContainsPoint(_pressModel));
+        e.Handled = true;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -84,9 +104,26 @@ public sealed class CanvasView : Control
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
         var position = e.GetPosition(this);
+        if (_pressedOnPiece)
+        {
+            _lastPointer = position;
+            return; // dragging a piece: resolve on release
+        }
         _offset = new Point(_offset.X + (position.X - _lastPointer.X), _offset.Y + (position.Y - _lastPointer.Y));
         _lastPointer = position;
         InvalidateVisual();
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        if (!_pressedOnPiece)
+            return;
+        var pixelDelta = e.GetPosition(this) - _pressPixel;
+        if (pixelDelta.X * pixelDelta.X + pixelDelta.Y * pixelDelta.Y < 16)
+            OnClick?.Invoke(_pressModel);
+        else
+            OnDrag?.Invoke(new Point2D(pixelDelta.X / _scale, -pixelDelta.Y / _scale));
+        _pressedOnPiece = false;
     }
 
     private Point ToPixel(Point2D p) => new(_offset.X + p.X * _scale, _offset.Y - p.Y * _scale);
