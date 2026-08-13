@@ -1,4 +1,4 @@
-# ADR-001: Stage 1 DXF adapter
+# ADR-01: Stage 1 DXF adapter
 
 Status: accepted for Stage 1 inventory; replacement boundary retained.
 
