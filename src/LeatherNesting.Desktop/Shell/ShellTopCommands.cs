@@ -25,7 +25,7 @@ public static class ShellToolbar
         {
             new ShellToolbarCommand("新建排版", ToolbarIconKey.NewLayout, "M01", true),
             new ShellToolbarCommand("订单管理", ToolbarIconKey.OrderManagement, "M01", false),
-            new ShellToolbarCommand("CAD工具", ToolbarIconKey.CadTools, "M03", false),
+            new ShellToolbarCommand("CAD工具", ToolbarIconKey.CadTools, "M02", false),
             new ShellToolbarCommand("开始排版", ToolbarIconKey.StartNesting, "M08", true),
             new ShellToolbarCommand("停止排版", ToolbarIconKey.StopNesting, "M08", true),
             new ShellToolbarCommand("取消排版", ToolbarIconKey.CancelNesting, "M08", true),

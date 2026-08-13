@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using LeatherNesting.Desktop.DesignSystem;
+using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.Modules.Contracts;
 using LeatherNesting.Desktop.Shell;
 using LeatherNesting.Desktop.Workspace;
@@ -21,7 +22,7 @@ public sealed class TopCommandAreaTests
     ];
 
     private static readonly string[] ExpectedTargetModuleIds =
-        ["M01", "M01", "M03", "M08", "M08", "M08", "M03", "M12", "M05", "M11"];
+        ["M01", "M01", "M02", "M08", "M08", "M08", "M03", "M12", "M05", "M11"];
 
     [Fact]
     [Trait("Stage", "UI")]
@@ -87,6 +88,7 @@ public sealed class TopCommandAreaTests
         var viewModel = new AppShellViewModel(
             [
                 new TestModule("M01", 1),
+                new TestModule("M02", 2),
                 new TestModule("M03", 3),
                 new TestModule("M05", 5),
                 new TestModule("M08", 8),
@@ -102,11 +104,45 @@ public sealed class TopCommandAreaTests
         Assert.Equal("M01", viewModel.CurrentModule!.Id);
         Assert.Null(workspace.Snapshot.TodoHint);
 
+        var cadTools = area.CommandButtons.Single(button => button.Descriptor.Label == "CAD工具");
+        cadTools.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("M02", viewModel.CurrentModule!.Id);
+        Assert.Null(workspace.Snapshot.TodoHint);
+
         var startNesting = area.CommandButtons.Single(button => button.Descriptor.Label == "开始排版");
         startNesting.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Equal("M08", viewModel.CurrentModule!.Id);
         Assert.Contains(TodoBadge.StandardText, workspace.Snapshot.TodoHint);
         Assert.Contains("开始排版", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-005")]
+    public void Shell_uses_a_flexible_workspace_and_fixed_inspector_without_the_legacy_module_nav()
+    {
+        var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
+        var layout = Assert.IsType<Grid>(shell.Content);
+
+        Assert.Equal(2, layout.ColumnDefinitions.Count);
+        Assert.Equal(GridLength.Star, layout.ColumnDefinitions[0].Width);
+        Assert.Equal(new GridLength(300), layout.ColumnDefinitions[1].Width);
+        Assert.Equal(4, layout.Children.Count);
+        Assert.DoesNotContain(layout.Children, child => Grid.GetRowSpan(child) == 3);
+        Assert.Equal(0, Grid.GetColumn(shell.WorkspaceContent));
+        Assert.Equal(1, Grid.GetRow(shell.WorkspaceContent));
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-006")]
+    public void Shell_starts_on_the_M03_CAD_canvas_in_the_main_workspace()
+    {
+        var viewModel = DesktopComposition.CreateShellViewModel();
+        var shell = new AppShellView(viewModel);
+
+        Assert.Equal("M03", viewModel.CurrentModule!.Id);
+        Assert.Same(viewModel.CurrentView, shell.WorkspaceContent.Content);
     }
 
     private sealed class TestModule(string id, int order) : IDesktopModule

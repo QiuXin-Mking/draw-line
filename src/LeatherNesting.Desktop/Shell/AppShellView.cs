@@ -8,7 +8,7 @@ using LeatherNesting.Desktop.Workspace;
 
 namespace LeatherNesting.Desktop.Shell;
 
-/// <summary>Demo shell: left nav, top command bar, center workspace, right inspector, bottom status bar.</summary>
+/// <summary>Demo shell: top command area, flexible workspace, fixed inspector, and bottom status bar.</summary>
 public sealed class AppShellView : UserControl
 {
     private readonly AppShellViewModel _viewModel;
@@ -31,71 +31,37 @@ public sealed class AppShellView : UserControl
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         Content = BuildLayout();
         _viewModel.SnapshotChanged += (_, snapshot) => RefreshSnapshot(snapshot);
-        ShowModule(_viewModel.Modules[0]);
+        ShowModule(_viewModel.Modules.Single(module => module.Id == "M03"));
         RefreshSnapshot(_viewModel.Snapshot);
     }
+
+    public ContentControl WorkspaceContent => _content;
 
     private Control BuildLayout()
     {
         var grid = new Grid
         {
-            ColumnDefinitions = ColumnDefinitions.Parse("220,*,300"),
+            ColumnDefinitions = ColumnDefinitions.Parse("*,300"),
             RowDefinitions = RowDefinitions.Parse("Auto,*,Auto"),
             Background = AppTheme.WorkspaceBackground,
         };
 
-        var nav = BuildNav();
-        Grid.SetRow(nav, 0); Grid.SetRowSpan(nav, 3); Grid.SetColumn(nav, 0);
-
         var topBar = BuildTopBar();
-        Grid.SetRow(topBar, 0); Grid.SetColumn(topBar, 1); Grid.SetColumnSpan(topBar, 2);
+        Grid.SetRow(topBar, 0); Grid.SetColumn(topBar, 0); Grid.SetColumnSpan(topBar, 2);
 
-        Grid.SetRow(_content, 1); Grid.SetColumn(_content, 1);
+        Grid.SetRow(_content, 1); Grid.SetColumn(_content, 0);
 
         var inspector = BuildInspector();
-        Grid.SetRow(inspector, 1); Grid.SetColumn(inspector, 2);
+        Grid.SetRow(inspector, 1); Grid.SetColumn(inspector, 1);
 
         var statusBar = BuildStatusBar();
-        Grid.SetRow(statusBar, 2); Grid.SetColumn(statusBar, 1); Grid.SetColumnSpan(statusBar, 2);
+        Grid.SetRow(statusBar, 2); Grid.SetColumn(statusBar, 0); Grid.SetColumnSpan(statusBar, 2);
 
-        grid.Children.Add(nav);
         grid.Children.Add(topBar);
         grid.Children.Add(_content);
         grid.Children.Add(inspector);
         grid.Children.Add(statusBar);
         return grid;
-    }
-
-    private Control BuildNav()
-    {
-        var stack = new StackPanel { Spacing = 2, Margin = new Thickness(8) };
-        foreach (var group in _viewModel.Modules.GroupBy(m => m.Group))
-        {
-            stack.Children.Add(new TextBlock
-            {
-                Text = group.Key,
-                Foreground = AppTheme.TextMuted,
-                FontSize = 12,
-                Margin = new Thickness(8, 10, 8, 2),
-            });
-            foreach (var module in group)
-            {
-                var label = module.HasRealLogic ? module.Title : $"{module.Title} · TODO";
-                var button = new Button
-                {
-                    Content = label,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    HorizontalContentAlignment = HorizontalAlignment.Left,
-                };
-                button.Click += (_, _) => ShowModule(module);
-                stack.Children.Add(button);
-            }
-        }
-        return new Border
-        {
-            Background = AppTheme.NavBackground,
-            Child = new ScrollViewer { Content = stack },
-        };
     }
 
     private Control BuildTopBar()

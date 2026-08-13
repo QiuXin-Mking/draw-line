@@ -3,8 +3,9 @@
 1. 先增加 Shell 顶部合同测试，锁定菜单/工具标签顺序、图标存在和模块映射。
 2. 在 DesignSystem 中实现无字体依赖的十个矢量图标及顶部区域视觉令牌。
 3. 重构 `AppShellView` 顶部区域：菜单行、TODO 下拉项、图标在上文字在下的工具栏、窄窗口横向访问。
-4. 通过 `AppShellViewModel.Select` 接入十个入口对应模块，保留 TODO 与 Workspace 行为。
-5. 运行 Desktop 测试、解决方案构建及 `git diff --check`；复核 1366×768 视觉结构与未提交用户文件不受影响。
+4. 通过 `AppShellViewModel.Select` 接入十个入口对应模块；CAD工具映射 M02 导入、范围缩放映射 M03 画布，并保留 TODO 与 Workspace 行为。
+5. 删除旧的左侧模块占位导航，把 Shell 调整为弹性中央工作区 + 右检查器两列；默认选择 M03 CAD 画布，并增加布局/默认模块回归测试。
+6. 运行 Desktop 测试、解决方案构建及 `git diff --check`；复核 1366×768 视觉结构与未提交用户文件不受影响。
 
 ## 风险点与回滚点
 
