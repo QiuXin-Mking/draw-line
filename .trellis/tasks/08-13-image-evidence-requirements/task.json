@@ -36,7 +36,8 @@
     "08-13-ui-workspace-contracts",
     "08-13-ui-module-contracts",
     "08-13-ui-demo-contracts",
-    "08-13-ui-import-workflow"
+    "08-13-ui-import-workflow",
+    "08-13-ui-shell-integration"
   ],
   "parent": null,
   "relatedFiles": [],
