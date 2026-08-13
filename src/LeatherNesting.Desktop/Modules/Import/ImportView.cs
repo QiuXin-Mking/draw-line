@@ -2,8 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
-using LeatherNesting.Desktop.Adapters.Import;
 using LeatherNesting.Application;
+using LeatherNesting.Desktop.DesignSystem;
 
 namespace LeatherNesting.Desktop.Modules.Import;
 
@@ -17,29 +17,42 @@ public sealed class ImportView : UserControl
     private readonly TextBox diagnostics = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button confirm = new() { Content = "确认毫米并导入", IsEnabled = false };
     private readonly Button cancel = new() { Content = "取消导入", IsEnabled = false };
+    private readonly Button enterWorkbench = new() { Content = "进入工艺工作台", IsEnabled = false };
     private readonly TabControl tabs = new();
     private readonly TabItem workbenchTab = new() { Header = "工艺工作台" };
-
-    /// <summary>Compatibility entry point until F05 composition supplies a shared coordinator.</summary>
-    public ImportView() : this(DefaultImportCoordinatorFactory.Create())
-    {
-    }
 
     public ImportView(IImportCoordinator coordinator)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         var newProject = new Button { Content = "新建项目" };
-        newProject.Click += (_, _) => { this.coordinator.CreateProject(projectName.Text ?? "新项目"); Refresh(); };
+        newProject.Click += (_, _) =>
+        {
+            this.coordinator.CreateProject(projectName.Text ?? "新项目");
+            diagnostics.Text = string.Empty;
+            Refresh();
+        };
         var browse = new Button { Content = "选择 DXF…" };
         browse.Click += async (_, _) => await BrowseAsync();
         var inspect = new Button { Content = "导入 DXF" };
         inspect.Click += async (_, _) => await InspectAsync();
-        confirm.Click += (_, _) => { this.coordinator.ConfirmMillimetres(); Refresh(); };
-        cancel.Click += (_, _) => { this.coordinator.CancelImport(); Refresh(); };
+        confirm.Click += (_, _) =>
+        {
+            this.coordinator.ConfirmMillimetres();
+            diagnostics.Text = string.Empty;
+            Refresh();
+        };
+        cancel.Click += (_, _) =>
+        {
+            this.coordinator.CancelImport();
+            diagnostics.Text = string.Empty;
+            Refresh();
+        };
         var save = new Button { Content = "保存项目…" };
         save.Click += async (_, _) => await SaveAsync();
-        var enterWorkbench = new Button { Content = "进入工艺工作台" };
         enterWorkbench.Click += async (_, _) => await EnterWorkbenchAsync();
+
+        var locate = new Button { Content = "定位诊断对象（TODO）" };
+        locate.Click += (_, _) => status.Text = $"诊断对象定位：{TodoBadge.StandardText}";
 
         var header = new StackPanel
         {
@@ -55,9 +68,15 @@ public sealed class ImportView : UserControl
             Children =
             {
                 new TextBlock { Text = "导入裁片 DXF 文件", FontSize = 16 },
+                new TextBlock { Text = "步骤 1 选择文件  →  步骤 2 单位/比例确认  →  步骤 3 识别结果  →  步骤 4 问题处理与提交" },
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { sourcePath, browse, inspect, confirm, cancel } },
                 new TextBlock { Text = "导入信息" },
                 diagnostics,
+                locate,
+                new TodoBadge("自动修复：TODO · 演示占位，未接入实际逻辑"),
+                new TodoBadge("批量图层映射：TODO · 演示占位，未接入实际逻辑"),
+                new TodoBadge("拖放与多文件导入：TODO · 演示占位，未接入实际逻辑"),
+                new TodoBadge("非 DXF 格式入口：TODO · 演示占位，未接入实际逻辑"),
             },
         };
         tabs.Items.Add(new TabItem { Header = "导入", Content = body });
@@ -69,7 +88,8 @@ public sealed class ImportView : UserControl
             RowDefinitions = RowDefinitions.Parse("Auto,*,Auto"),
             Children = { header, tabs, status },
         };
-        this.coordinator.CreateProject(projectName.Text!);
+        sourcePath.TextChanged += (_, _) => RefreshWorkbenchAvailability();
+        if (this.coordinator.State.Project is null) this.coordinator.CreateProject(projectName.Text!);
         Refresh();
     }
 
@@ -142,15 +162,34 @@ public sealed class ImportView : UserControl
         status.Text = project is null ? "未创建项目" : $"{project.Name} · 修订 {project.Revision} · {(project.IsDirty ? "未保存" : "已保存")}";
         confirm.IsEnabled = coordinator.State.RequiresUnitConfirmation;
         cancel.IsEnabled = coordinator.State.RequiresUnitConfirmation;
+        RefreshWorkbenchAvailability();
         if (coordinator.State.RequiresUnitConfirmation)
         {
             var inspection = coordinator.State.Inspection!;
             var layers = inspection.Entities.Select(item => item.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order().ToArray();
-            diagnostics.Text = $"DXF 声明单位：{FormatUnit(inspection.DeclaredUnit)}（必须人工确认）\n图层：{(layers.Length == 0 ? "无可识别实体" : string.Join("、", layers))}\n" +
-                string.Join(Environment.NewLine, coordinator.State.Diagnostics.Select(item => $"{item.Severity} · {item.Code} · {item.Message}"));
+            var entityStats = inspection.Entities
+                .GroupBy(item => item.Kind)
+                .OrderBy(group => group.Key)
+                .Select(group => $"{group.Key} {group.Count()}");
+            var severityStats = coordinator.State.Diagnostics
+                .GroupBy(item => FormatSeverity(item.Severity))
+                .Select(group => $"{group.Key} {group.Count()}");
+            diagnostics.Text = $"DXF 声明单位：{FormatUnit(inspection.DeclaredUnit)}（必须人工确认）\n" +
+                $"实体：{inspection.Entities.Count}（{string.Join("、", entityStats)}）；候选裁片：{inspection.ClosedPieceCandidates.Count}\n" +
+                $"图层：{(layers.Length == 0 ? "无可识别实体" : string.Join("、", layers))}\n" +
+                $"诊断等级：{(coordinator.State.Diagnostics.Count == 0 ? "无" : string.Join("、", severityStats))}\n" +
+                string.Join(Environment.NewLine, coordinator.State.Diagnostics.Select(item =>
+                    $"{FormatSeverity(item.Severity)} · {item.Code} · {item.Message}" +
+                    (string.IsNullOrWhiteSpace(item.EntityId) ? string.Empty : $" · 对象 {item.EntityId}")));
         }
-        else if (string.IsNullOrWhiteSpace(diagnostics.Text)) diagnostics.Text = "尚未导入 DXF。";
+        else if (string.IsNullOrWhiteSpace(diagnostics.Text))
+            diagnostics.Text = coordinator.State.HasConfirmedImport
+                ? "单位已确认：毫米。当前 DXF 已提交到项目，可保存或进入工艺工作台。"
+                : "尚未导入 DXF。";
     }
+
+    private void RefreshWorkbenchAvailability() =>
+        enterWorkbench.IsEnabled = coordinator.CanEnterWorkbench(sourcePath.Text ?? string.Empty);
 
     private static string FormatUnit(DxfDeclaredUnit unit) => unit switch
     {
@@ -162,5 +201,13 @@ public sealed class ImportView : UserControl
         DxfDeclaredUnit.Miles => "英里",
         DxfDeclaredUnit.Unitless => "无单位",
         _ => "未声明/未知",
+    };
+
+    private static string FormatSeverity(string severity) => severity.ToUpperInvariant() switch
+    {
+        "BLOCKING" => "阻断",
+        "WARNING" => "警告",
+        "INFO" => "提示",
+        _ => severity,
     };
 }

@@ -6,15 +6,32 @@ using LeatherNesting.Domain;
 namespace LeatherNesting.Desktop.Modules.Import;
 
 /// <summary>Coordinates inspection, confirmation, persistence, and the workspace's single current project.</summary>
-public sealed class ImportCoordinator(
-    ImportDxfUseCase importDxf,
-    IProjectStore projectStore,
-    IImportGeometryReader geometryReader,
-    IWorkspaceSession workspace,
-    IWorkspaceCommands workspaceCommands,
-    IImportWorkbenchFactory? workbenchFactory = null) : IImportCoordinator
+public sealed class ImportCoordinator : IImportCoordinator
 {
+    private readonly ImportDxfUseCase importDxf;
+    private readonly IProjectStore projectStore;
+    private readonly IImportGeometryReader geometryReader;
+    private readonly IWorkspaceSession workspace;
+    private readonly IWorkspaceCommands workspaceCommands;
+    private readonly IImportWorkbenchFactory? workbenchFactory;
     private ImportDxfPreparation? _preparation;
+
+    public ImportCoordinator(
+        ImportDxfUseCase importDxf,
+        IProjectStore projectStore,
+        IImportGeometryReader geometryReader,
+        IWorkspaceSession workspace,
+        IWorkspaceCommands workspaceCommands,
+        IImportWorkbenchFactory? workbenchFactory = null)
+    {
+        this.importDxf = importDxf ?? throw new ArgumentNullException(nameof(importDxf));
+        this.projectStore = projectStore ?? throw new ArgumentNullException(nameof(projectStore));
+        this.geometryReader = geometryReader ?? throw new ArgumentNullException(nameof(geometryReader));
+        this.workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        this.workspaceCommands = workspaceCommands ?? throw new ArgumentNullException(nameof(workspaceCommands));
+        this.workbenchFactory = workbenchFactory;
+        ImportModule.BindCoordinator(this);
+    }
 
     public ImportWorkflowState State { get; private set; } = ImportWorkflowState.Empty;
 
@@ -58,8 +75,17 @@ public sealed class ImportCoordinator(
         PublishCurrentProject();
     }
 
+    public bool CanEnterWorkbench(string path) =>
+        !string.IsNullOrWhiteSpace(path) &&
+        !State.RequiresUnitConfirmation &&
+        State.Project?.Imports.Any(import =>
+            import.UnitDecision == UnitDecision.ConfirmedMillimetres &&
+            PathsEqual(import.SourcePath, path)) == true;
+
     public Task<Control> CreateWorkbenchAsync(string path, CancellationToken cancellationToken)
     {
+        if (!CanEnterWorkbench(path))
+            throw new InvalidOperationException("必须先检查当前 DXF 并确认毫米单位，才能进入工艺工作台。");
         if (workbenchFactory is not null) return workbenchFactory.CreateAsync(path, cancellationToken);
         return CreateDefaultWorkbenchAsync(path, cancellationToken);
     }
@@ -79,4 +105,7 @@ public sealed class ImportCoordinator(
             project.Name,
             Status: project.IsDirty ? "未保存" : "已保存"));
     }
+
+    private static bool PathsEqual(string left, string right) =>
+        StringComparer.OrdinalIgnoreCase.Equals(Path.GetFullPath(left), Path.GetFullPath(right));
 }

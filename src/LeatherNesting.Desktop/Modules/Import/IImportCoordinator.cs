@@ -22,6 +22,8 @@ public interface IImportCoordinator
 
     Task SaveAsync(string path, CancellationToken cancellationToken);
 
+    bool CanEnterWorkbench(string path);
+
     Task<Control> CreateWorkbenchAsync(string path, CancellationToken cancellationToken);
 }
 
@@ -33,6 +35,8 @@ public sealed record ImportWorkflowState(ProjectDocument? Project, DxfImportResu
     public IReadOnlyList<ImportDiagnostic> Diagnostics => Inspection?.Diagnostics ?? [];
 
     public bool RequiresUnitConfirmation => Inspection is not null;
+
+    public bool HasConfirmedImport => Project?.Imports.Any(import => import.UnitDecision == UnitDecision.ConfirmedMillimetres) == true;
 }
 
 /// <summary>Reads source geometry for the workbench without exposing infrastructure to the view.</summary>
