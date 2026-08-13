@@ -8,11 +8,13 @@ namespace LeatherNesting.Desktop.Views;
 public sealed class CadWorkbenchView : UserControl
 {
     private readonly CadWorkbenchViewModel _viewModel;
+    private readonly CanvasView _canvas = new();
 
     public CadWorkbenchView(CadWorkbenchViewModel viewModel)
     {
         _viewModel = viewModel;
         Content = BuildLayout();
+        RefreshCanvas();
     }
 
     private Control BuildLayout()
@@ -45,19 +47,9 @@ public sealed class CadWorkbenchView : UserControl
         mainGrid.Children.Add(toolbar);
         Grid.SetRow(toolbar, 0);
 
-        // Canvas area (placeholder for Stage 2 — real canvas rendering in later iteration)
-        var canvas = new Border
-        {
-            Background = Avalonia.Media.Brushes.White,
-            Child = new TextBlock
-            {
-                Text = FormatToolMode(_viewModel.ToolMode) + " — 画布（Stage 2 占位）",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            },
-        };
-        mainGrid.Children.Add(canvas);
-        Grid.SetRow(canvas, 1);
+        // Canvas area
+        mainGrid.Children.Add(_canvas);
+        Grid.SetRow(_canvas, 1);
 
         // Status bar
         var statusBar = new StackPanel
@@ -83,7 +75,7 @@ public sealed class CadWorkbenchView : UserControl
             Content = "Commit",
             IsEnabled = _viewModel.CanCommit,
         };
-        commitButton.Click += (_, _) => _viewModel.Commit();
+        commitButton.Click += (_, _) => { _viewModel.Commit(); RefreshCanvas(); };
         statusBar.Children.Add(commitButton);
 
         var cancelButton = new Button
@@ -91,7 +83,7 @@ public sealed class CadWorkbenchView : UserControl
             Content = "Cancel",
             IsEnabled = _viewModel.CanCancel,
         };
-        cancelButton.Click += (_, _) => _viewModel.Cancel();
+        cancelButton.Click += (_, _) => { _viewModel.Cancel(); RefreshCanvas(); };
         statusBar.Children.Add(cancelButton);
 
         var undoButton = new Button
@@ -99,7 +91,7 @@ public sealed class CadWorkbenchView : UserControl
             Content = "Undo",
             IsEnabled = _viewModel.CanUndo,
         };
-        undoButton.Click += (_, _) => _viewModel.Undo();
+        undoButton.Click += (_, _) => { _viewModel.Undo(); RefreshCanvas(); };
         statusBar.Children.Add(undoButton);
 
         var redoButton = new Button
@@ -107,7 +99,7 @@ public sealed class CadWorkbenchView : UserControl
             Content = "Redo",
             IsEnabled = _viewModel.CanRedo,
         };
-        redoButton.Click += (_, _) => _viewModel.Redo();
+        redoButton.Click += (_, _) => { _viewModel.Redo(); RefreshCanvas(); };
         statusBar.Children.Add(redoButton);
 
         mainGrid.Children.Add(statusBar);
@@ -115,6 +107,8 @@ public sealed class CadWorkbenchView : UserControl
 
         return mainGrid;
     }
+
+    private void RefreshCanvas() => _canvas.SetData(_viewModel.CurrentLoops);
 
     private static string FormatToolMode(CadToolMode mode) => mode switch
     {
