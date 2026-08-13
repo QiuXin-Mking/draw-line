@@ -32,7 +32,9 @@
     "08-13-ui-validation",
     "08-13-ui-export",
     "08-13-ui-administration",
-    "08-13-ui-demo-integration"
+    "08-13-ui-demo-integration",
+    "08-13-ui-workspace-contracts",
+    "08-13-ui-module-contracts"
   ],
   "parent": null,
   "relatedFiles": [],
