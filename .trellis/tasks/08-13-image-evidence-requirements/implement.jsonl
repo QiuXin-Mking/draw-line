@@ -1,1 +1,6 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/frontend/index.md","reason":"Desktop Avalonia UI module implementation must follow the project frontend guideline index."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/prd.md","reason":"Authoritative UI-first product scope, acceptance criteria, TODO rules, and module definitions."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/design.md","reason":"Shared Shell architecture, ownership boundaries, TODO behavior contract, and integration rules."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/implement.md","reason":"Executable T00–T13 task plan, file ownership, verification requirements, and dispatch protocol."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/research/product-function-specification-table.md","reason":"Detailed functional contract and cross-module business rules."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/research/claude-trellis-subagent-matrix.md","reason":"Claude Code sub-agent batching, required task prefix, and per-module delivery expectations."}

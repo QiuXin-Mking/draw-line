@@ -1,1 +1,5 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/frontend/index.md","reason":"Review UI module conformance to the project frontend guideline index."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/prd.md","reason":"Review acceptance criteria and prohibit fake completion behavior."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/design.md","reason":"Review ownership boundaries, TODO markings, and Shell integration contract."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/implement.md","reason":"Review required verification and module completion definitions."}
+{"file":".trellis/tasks/08-13-image-evidence-requirements/research/product-function-specification-table.md","reason":"Review functional completeness and cross-module rule consistency."}
