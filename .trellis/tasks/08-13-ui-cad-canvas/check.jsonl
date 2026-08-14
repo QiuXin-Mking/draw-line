@@ -1,1 +1,4 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/frontend/index.md","reason":"检查阶段执行 Desktop 前端质量清单"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"检查测试覆盖、状态边界、可维护性和回归风险"}
+{"file":".trellis/tasks/08-13-ui-cad-canvas/research/cad-toolbar-evidence.md","reason":"逐项核对 27 项工具、分组、Tooltip、模式和实现边界"}
+{"file":"docs/manual-ui-acceptance.md","reason":"核对人工视觉矩阵、逐控件结果和截图证据"}

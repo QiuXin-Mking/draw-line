@@ -1,1 +1,4 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/frontend/index.md","reason":"实现前加载 Desktop 前端规范入口与检查清单"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"约束工具注册表、视图组件、矢量图标和宿主边界"}
+{"file":".trellis/spec/frontend/state-management.md","reason":"约束上下文模式、ActiveTool、禁用态和 TODO 状态流"}
+{"file":".trellis/tasks/08-13-ui-cad-canvas/research/cad-toolbar-evidence.md","reason":"完整注入 27 项工具顺序、截图明示 Tooltip、置信度、模式与实现边界"}

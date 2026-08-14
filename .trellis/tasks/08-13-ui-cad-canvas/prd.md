@@ -1,36 +1,87 @@
-# UI M03 CAD 画布、选择与显示
+# PRD：M03 CAD 画布与 27 项上下文工具栏复刻
 
 ## Goal
 
-实现 M03 CAD 浏览与显示控制演示页：深色画布宿主、对象树、图层可见性、全图/缩放、坐标/标尺、图例。复用现有 `CanvasView` 的缩放/平移/点选/拖拽能力；未真实接入的命中/框选/多选/图层持久化/曲线编辑标 TODO。
+在现有 CAD 永久画布宿主上复刻截图中可观察的高密度工具栏，使按钮顺序、控件 ID、图标语义、分组、Tooltip、状态切换和 TODO 边界都可被自动验收，并保持真实 DXF 导入、画布缩放与现有 Shell 不回归。
 
-## Background / Confirmed Facts
+本任务的交付重点是“可演示、可继续接业务逻辑的 UI 框架”。截图无法证明或当前代码尚未支持的几何算法，不得伪造完成，必须显示 `TODO · 演示占位，未接入实际逻辑`。
 
-- 父任务 `implement.md` T03 与 `product-function-specification-table.md` M03 定义合同。
-- `Views/CanvasView.cs` 已有：缩放（滚轮）、平移（拖拽）、点选/拖拽移动、选中高亮、`SetData(loops, refit)`、`ToModel`。
-- `DemoScenario` 无几何数据（只有 `PieceCount`），M03 需要合成演示裁片。
-- 当前 M03 在 Shell 中是占位页。
+## Confirmed Facts
+
+- 证据文档：`05-图片/03-.md`。
+- CAD 编辑模式可见 27 个图标按钮；加上“填充”复选框和 `255` 数值框，共 29 个交互实例。
+- 连续截图 tooltip 已确认前五项：导到订单、鼠标选择模式、范围缩放、绘制多段线、绘制矩形。
+- 排样/结果浏览模式只保留：选择、撤销、重做、取消、删除、设置。
+- `src/LeatherNesting.Desktop/Shell/CadWorkspaceHost.cs` 已提供固定 CAD 宿主、5 个临时工具按钮和真实导入几何显示。
+- `CadHostState.ReportUnsupported` 与 `TodoBadge.StandardText` 已提供诚实 TODO 反馈。
+- `CadHostEvidenceTests` 已验证部分按钮顺序、24×24 尺寸、Tooltip 和无副作用 TODO。
 
 ## Requirements
 
-- **R1 演示几何**：新增 `Demo/DemoGeometry.cs`（`DemoObject`：Id/类别/Loop2D）+ `Demo/DemoGeometryFactory`，生成少量合成裁片（外轮廓矩形、孔圆、内部线）。
-- **R2 M03 页面**（`Modules/CadCanvas/`）：深色画布宿主（复用 `CanvasView`）、左侧对象树、图层可见性开关、顶部工具栏（全图/缩放）、底部坐标/缩放状态、图例。
-- **R3 显示控制**：切换类别可见性 → 画布过滤对应 loop（`SetData(loops, refit:false)`）；「全图」→ `refit:true`。
-- **R4 TODO**：命中测试、框选、多选、图层持久化、复杂曲线编辑标 `TodoBadge`，点击显示文本说明。
-- **R5 接入 Shell**：M03 用 `CadCanvasView` 替换占位页。
+### R1：稳定工具合同
+
+- 建立 27 项工具的唯一注册表，字段至少包含：`Order`、`ControlId`、`CommandKey`、`Label`、`Tooltip`、`Group`、`IconKey`、`Confidence`、`SupportedModes`、`ImplementationState`、`Shortcut`。
+- 控件 ID 固定为 `CAD-04` 至 `CAD-30`，不得在视图中手写另一套顺序。
+- 低/中置信工具的 Tooltip 必须包含 `TODO待实机确认`；截图明示项不得带“推测”字样。
+
+### R2：图标与外观
+
+- 每项使用原创矢量图形表达相同功能语义，不嵌入或抠取竞品图片资产。
+- 工具按钮基准 24×24 px、方角、浅灰背景、细边框；当前工具使用蓝色描边/浅蓝底；禁用态降低对比度但仍可辨识轮廓。
+- 五个工具组必须通过竖分隔线或 3–5 px 间距区分；1366×768 下保持单行，不换行。
+- 工具栏位于黑色画布上沿并与右侧参数栏相邻，视觉层级不得被大卡片或大字号破坏。
+
+### R3：上下文模式
+
+- 至少支持 `CadEdit` 与 `NestingReview` 两种模式。
+- `CadEdit` 展示全部 27 项；`NestingReview` 只展示 6 项公共命令。
+- 模式切换只改变可见性/可用性，不改变工具注册表 ID 和顺序。
+
+### R4：工具状态机
+
+- 绘图/选择工具互斥，任一时刻最多一个 Active Tool。
+- 切换工具要取消未提交预览；`Esc` 第一层取消当前步骤，第二层返回选择模式。
+- 取消命令与删除对象必须是两个不同命令。
+- 撤销、重做、删除根据历史和选择状态显示禁用态。
+
+### R5：功能边界与 TODO
+
+- 已有真实能力继续可用：真实导入几何显示、范围缩放/全图、清空当前 CAD 宿主。
+- 鼠标选择可至少完成工具模式切换；尚未实现的命中/框选必须显示 TODO。
+- 未接入的绘图、标注、孔位、马牙齿、轮廓编辑、UV、擦除、面域、变换等点击后只更新状态提示，不得修改几何或声称成功。
+- TODO 命令必须保留操作名称，便于后续替换真实实现。
+
+### R6：可访问性与可测试性
+
+- 所有按钮必须有可读 Tooltip/自动化名称；仅靠颜色不能表达选中、错误或 TODO。
+- 键盘焦点可见；明确快捷键至少包含 `Esc`、`Ctrl+T`、`Ctrl+Z`、`Ctrl+Y`。
+- View 只能消费注册表和状态投影，不得根据按钮文字判断业务命令。
 
 ## Acceptance Criteria
 
-- [ ] 显示控制改变演示类别可见性（隐藏/显示可观察）。
-- [ ] 全图/缩放可观察。
-- [ ] 未接入工具均标 TODO（`TodoBadge.StandardText`）。
-- [ ] `dotnet build` 0 警告 0 错误；Desktop 测试不回归；新增 M03 测试通过（几何非空、类别齐全、可见性切换逻辑）。
+| ID | 验收内容 | 可观察结果 |
+| --- | --- | --- |
+| AC-CAD-T01 | 检查工具注册表 | 恰有 27 项；Order 为 1–27；ControlId 为 CAD-04…CAD-30；CommandKey、ControlId 均唯一 |
+| AC-CAD-T02 | 检查前五项 | 名称、顺序和已确认 Tooltip 与截图证据一致 |
+| AC-CAD-T03 | 检查编辑模式 | 27 个按钮单行显示，五组顺序正确，填充和 255 控件位于按钮前 |
+| AC-CAD-T04 | 切换结果浏览模式 | 仅出现选择、撤销、重做、取消、删除、设置，原 ID 不变化 |
+| AC-CAD-T05 | 逐项检查外观 | 每项为原创矢量图标；24×24 方角；常态、悬停、选中、禁用可区分 |
+| AC-CAD-T06 | 点击任意互斥工具 | 仅该工具进入选中态，上一工具退出；状态栏显示命令名 |
+| AC-CAD-T07 | 点击未实现工具 | 状态栏出现该命令与标准 TODO；几何集合、项目和磁盘均不改变 |
+| AC-CAD-T08 | 执行范围缩放 | 调用现有画布适配能力，画面有可观察变化且不显示伪造成功 |
+| AC-CAD-T09 | 检查取消与删除 | 两者为不同命令；无选择时删除禁用；取消回到选择模式 |
+| AC-CAD-T10 | 1366×768 人工检查 | 工具栏不换行、不遮挡右侧面板；Tooltip 不被裁切；黑色画布仍为视觉主体 |
+| AC-CAD-T11 | 自动回归 | CAD/Shell/Desktop 测试和 solution build 通过；现有真实 DXF 导入到画布不回归 |
+| AC-CAD-T12 | 验收证据 | `docs/manual-ui-acceptance.md` 记录 27 项逐项结果、截图路径、TODO 清单和失败项 |
 
 ## Out of Scope
 
-- 真实命中/框选/多选/图层持久化/曲线编辑（后续任务）。
-- `CanvasView` 几何算法改动（只允许展示层复用）。
+- 本任务不实现完整 CAD 几何创建、节点编辑、布尔运算、UV 算法、马牙齿写入或生产 DXF 修改。
+- 不复制竞品品牌、像素资产、产品 SN 或源代码。
+- 不重构 Application、Domain、Geometry 或 Infrastructure 层。
+- 不把 27 个按钮拆成 27 个独立业务算法任务；本期先交付稳定 UI 合同和诚实占位。
 
-## Open Questions
+## Deferred Items
 
-无阻塞问题。
+- 编号 07、10、11、14、18、19、21 的竞品原始命令名仍需实机 Tooltip 确认；在确认前使用 PRD 中的候选名和 `TODO待实机确认`。
+- 真实撤销历史、对象选择和几何编辑在后续业务任务中接入；本任务只建立可替换的命令接口与状态边界。
