@@ -48,3 +48,24 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 完成 Desktop UI 色彩统一
+
+**Date**: 2026-08-14
+**Task**: 完成 Desktop UI 色彩统一
+**Branch**: `main`
+
+### Summary
+
+修复顶部白色菜单栏白字与 macOS 深色主题继承问题，统一 Desktop 语义色与状态文字，补充回归测试、原生截图和视觉核对记录；Desktop 测试 167/167 通过，解决方案构建 0 警告 0 错误。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ac44beb` | (see git log) |
+
+### Status
+
+[OK] **Completed**
