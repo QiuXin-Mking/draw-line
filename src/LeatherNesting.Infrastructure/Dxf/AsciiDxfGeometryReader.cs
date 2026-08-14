@@ -34,7 +34,12 @@ public sealed class AsciiDxfGeometryReader
             }
 
             if ((flags & 1) == 1 && points.Count >= 3)
+            {
+                // Closed polylines may omit the closing vertex; append it so Loop2D area/perimeter is exact.
+                if (points[0].DistanceTo(points[^1]) > 1e-9)
+                    points.Add(points[0]);
                 loops.Add(new Loop2D($"loop-{loops.Count + 1}", LoopRole.Outer, [new Polyline2D(points)]));
+            }
 
             i = end - 1;
         }

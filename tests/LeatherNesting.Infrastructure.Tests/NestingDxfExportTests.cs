@@ -102,6 +102,7 @@ public sealed class NestingDxfExportTests
             {
                 var expected = result.Placements[i].PlacedLoop;
                 var actual = loops[i + 1];
+                Assert.Equal(expected.Area, actual.Area, 3);
                 var (eMinX, eMinY, eMaxX, eMaxY) = BoundsOf(expected);
                 var (aMinX, aMinY, aMaxX, aMaxY) = BoundsOf(actual);
                 Assert.Equal(eMinX, aMinX, 6);

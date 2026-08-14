@@ -146,6 +146,9 @@ public sealed record Loop2D
                 sum += (end.X - start.X) * (end.Y + start.Y);
             }
         }
+        // Ring closing edge (trapezoid form): completes contours whose polyline omits
+        // the closing vertex. Contributes 0 when the ring is already closed.
+        sum += (Curves[0].StartPoint.X - Curves[^1].EndPoint.X) * (Curves[0].StartPoint.Y + Curves[^1].EndPoint.Y);
         return sum > 0; // positive = clockwise
     }
 
@@ -174,6 +177,10 @@ public sealed record Loop2D
                      - r * cy * (Math.Cos(endAngle) - Math.Cos(startAngle));
             }
         }
+        // Ring closing edge: last curve end → first curve start. Completes contours whose
+        // polyline omits the closing vertex; contributes 0 when the ring is already closed.
+        sum += Curves[^1].EndPoint.X * Curves[0].StartPoint.Y
+             - Curves[0].StartPoint.X * Curves[^1].EndPoint.Y;
         return Math.Abs(sum) / 2.0;
     }
 }
