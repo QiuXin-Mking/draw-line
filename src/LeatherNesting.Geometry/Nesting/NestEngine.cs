@@ -12,26 +12,29 @@ public sealed class NestEngine
         _candidates = new PlacementCandidateGenerator();
     }
 
+    /// <summary>Nests pieces in default order (largest area first, stable id as tie-break).</summary>
     public NestResult Nest(NestRequest request)
     {
-        if (request.Pieces.Count == 0)
-            return new NestResult([], [], 0);
+        var ordered = request.Pieces
+            .OrderByDescending(p => p.Area)
+            .ThenBy(p => p.StableId)
+            .ToList();
+        return NestInOrder(request, ordered);
+    }
+
+    /// <summary>Nests pieces in the caller-supplied order. Used by optimizers to explore reorderings.</summary>
+    public NestResult NestInOrder(NestRequest request, IReadOnlyList<Loop2D> orderedPieces)
+    {
         if (request.GapMm < 0)
             throw new ArgumentOutOfRangeException(nameof(request), "间隙不得为负数。");
         if (request.AllowedRotationsDegrees.Count == 0)
             throw new ArgumentException("至少需要一个允许旋转角。", nameof(request));
 
-        // Deterministic order: largest area first, stable id as tie-break.
-        var ordered = request.Pieces
-            .OrderByDescending(p => p.Area)
-            .ThenBy(p => p.StableId)
-            .ToList();
-
         var placements = new List<NestPlacement>();
         var placedLoops = new List<Loop2D>();
         var unplaced = new List<string>();
 
-        foreach (var piece in ordered)
+        foreach (var piece in orderedPieces)
         {
             var placement = FindPlacement(piece, request, placedLoops);
             if (placement is null)
