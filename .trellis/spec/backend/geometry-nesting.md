@@ -111,6 +111,16 @@ Symptom of getting this wrong: pieces "shrink" instead of keeping gap, silently 
 
 ---
 
+## Gotcha: closed-contour area needs the ring closing edge
+
+> **Warning**: `Loop2D.ComputeSignedArea` / `ComputeWinding` sum only curve-internal segments. A `Polyline2D` that omits its closing vertex (e.g. read back from DXF, or an offset result) yields a wrong area — the final-vertex→first-vertex edge is never counted.
+
+`Loop2D` now appends the ring closing edge (last curve end → first curve start), so area/winding stay exact even for non-explicitly-closed contours. A polyline that *is* explicitly closed (first point == last point) contributes 0 to that edge, so the fix is harmless either way. Don't rely on DXF/offset sources to close polylines.
+
+Symptom: a 98×48 offset rectangle reports area 4753 instead of 4704.
+
+---
+
 ## Validation & Error Matrix
 
 | Condition | Behavior |
