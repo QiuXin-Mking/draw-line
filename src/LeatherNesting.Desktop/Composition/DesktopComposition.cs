@@ -6,6 +6,7 @@ using LeatherNesting.Desktop.Demo;
 using LeatherNesting.Desktop.Modules;
 using LeatherNesting.Desktop.Modules.Contracts;
 using LeatherNesting.Desktop.Modules.Import;
+using LeatherNesting.Desktop.Modules.CadCanvas;
 using LeatherNesting.Desktop.Modules.Projects;
 using LeatherNesting.Desktop.Shell;
 using LeatherNesting.Desktop.Workspace;
@@ -20,7 +21,8 @@ public static class DesktopComposition
     public static AppShellViewModel CreateShellViewModel()
     {
         var workspace = CreateWorkspace(DemoScenarioFactory.Summary);
-        return new AppShellViewModel(CreateModules(workspace, workspace), workspace, workspace);
+        var cadHost = new CadHostState();
+        return new AppShellViewModel(CreateModules(workspace, workspace, cadHost), workspace, workspace, cadHost);
     }
 
     public static InMemoryWorkspaceSession CreateWorkspace(IDemoProjectSummaryProvider demo) =>
@@ -32,17 +34,26 @@ public static class DesktopComposition
             null));
 
     public static IReadOnlyList<IDesktopModule> CreateModules(IWorkspaceSession workspace, IWorkspaceCommands commands)
+        => CreateModules(workspace, commands, new CadHostState());
+
+    private static IReadOnlyList<IDesktopModule> CreateModules(
+        IWorkspaceSession workspace,
+        IWorkspaceCommands commands,
+        CadHostState cadHost)
     {
         ArgumentNullException.ThrowIfNull(workspace);
         ArgumentNullException.ThrowIfNull(commands);
 
-        var importCoordinator = CreateImportCoordinator(workspace, commands);
+        var importCoordinator = CreateImportCoordinator(workspace, commands, cadHost);
         return DesktopModuleDiscovery.CreateCatalog(
             typeof(DesktopComposition).Assembly,
             CreateCompatibilityModules(importCoordinator));
     }
 
-    private static IImportCoordinator CreateImportCoordinator(IWorkspaceSession workspace, IWorkspaceCommands commands)
+    private static IImportCoordinator CreateImportCoordinator(
+        IWorkspaceSession workspace,
+        IWorkspaceCommands commands,
+        CadHostState cadHost)
     {
         var geometryReader = new AsciiImportGeometryReader();
         return new ImportCoordinator(
@@ -51,7 +62,8 @@ public static class DesktopComposition
             geometryReader,
             workspace,
             commands,
-            new CadImportWorkbenchFactory(geometryReader));
+            new CadImportWorkbenchFactory(geometryReader),
+            cadHost);
     }
 
     private static IEnumerable<IDesktopModule> CreateCompatibilityModules(IImportCoordinator importCoordinator) =>

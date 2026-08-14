@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Desktop.Modules.Contracts;
+using LeatherNesting.Desktop.Modules.CadCanvas;
 using LeatherNesting.Desktop.Workspace;
 
 namespace LeatherNesting.Desktop.Shell;
@@ -19,14 +20,20 @@ public sealed class AppShellViewModel
         Modules = composed.Modules;
         _workspace = composed._workspace;
         _commands = composed._commands;
+        CadHost = composed.CadHost;
         _workspace.SnapshotChanged += OnWorkspaceSnapshotChanged;
     }
 
-    public AppShellViewModel(IEnumerable<IDesktopModule> modules, IWorkspaceSession workspace, IWorkspaceCommands commands)
+    public AppShellViewModel(
+        IEnumerable<IDesktopModule> modules,
+        IWorkspaceSession workspace,
+        IWorkspaceCommands commands,
+        CadHostState? cadHost = null)
     {
         ArgumentNullException.ThrowIfNull(modules);
         _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         _commands = commands ?? throw new ArgumentNullException(nameof(commands));
+        CadHost = cadHost ?? new CadHostState();
         Modules = DesktopModuleCatalog.CreateValidated(modules)
             .Select(module => new ModuleDescriptor(
                 module.Metadata.Id,
@@ -39,6 +46,8 @@ public sealed class AppShellViewModel
     }
 
     public IReadOnlyList<ModuleDescriptor> Modules { get; }
+
+    public CadHostState CadHost { get; }
 
     public ModuleDescriptor? CurrentModule { get; private set; }
 

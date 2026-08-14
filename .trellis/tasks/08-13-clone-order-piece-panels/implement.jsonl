@@ -1,1 +1,4 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/frontend/index.md","reason":"Frontend spec index"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/research/images-01-09.md","reason":"Piece-card evidence"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/research/images-10-18.md","reason":"Property dialog evidence"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/research/images-19-27.md","reason":"Image-27 order/piece evidence"}

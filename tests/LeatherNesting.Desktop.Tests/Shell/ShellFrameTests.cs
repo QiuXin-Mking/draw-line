@@ -37,6 +37,7 @@ public sealed class ShellFrameTests
         Assert.Equal((0, 0), Position(shell.LayoutCandidateHost));
         Assert.Equal((0, 1), Position(shell.OutputInformationHost));
         Assert.Equal((1, 0), Position(shell.CanvasSurface));
+        Assert.Same(shell.BodyGrid, Assert.IsType<Grid>(shell.BodyGrid.Parent).Children[0]);
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public sealed class ShellFrameTests
         Assert.Equal("订单 / 排版组", shell.OrderGroupHost.Title);
         Assert.Equal("裁片列表 · DEMO", shell.PieceListHost.Title);
         Assert.Equal("进度汇总 · DEMO", shell.ProgressSummaryHost.Title);
-        Assert.Equal("版型数量：6 · DEMO", shell.LayoutCandidateHost.Title);
+        Assert.Equal("CAD 参数", shell.LayoutCandidateHost.Title);
         Assert.Equal("排版输出信息 · DEMO", shell.OutputInformationHost.Title);
 
         Assert.All(shell.PersistentPaneHosts, host =>
@@ -104,6 +105,7 @@ public sealed class ShellFrameTests
 
         Assert.Equal("M03", viewModel.CurrentModule!.Id);
         Assert.IsType<CadCanvasView>(shell.WorkspaceContent.Content);
+        Assert.False(shell.WorkspaceContent.IsVisible);
         Assert.NotSame(shell.WorkspaceContent, shell.CanvasSurface.Child);
         Assert.IsNotType<CadCanvasView>(shell.CanvasSurface.Child);
         Assert.DoesNotContain(Descendants(shell.CanvasSurface), control => control is ScrollViewer);

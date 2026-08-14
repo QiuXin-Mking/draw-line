@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.DesignSystem;
+using LeatherNesting.Desktop.Modules.Pieces;
 using LeatherNesting.Desktop.Workspace;
 
 namespace LeatherNesting.Desktop.Shell;
@@ -21,14 +22,25 @@ public sealed class AppShellView : UserControl
     {
     }
 
+    public AppShellView(OrderPiecePanelState orderPieceState)
+        : this(DesktopComposition.CreateShellViewModel(), orderPieceState)
+    {
+    }
+
     public AppShellView(AppShellViewModel viewModel)
+        : this(viewModel, OrderPiecePanelState.CreateImage27Demo())
+    {
+    }
+
+    public AppShellView(AppShellViewModel viewModel, OrderPiecePanelState orderPieceState)
     {
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+        OrderPieceState = orderPieceState ?? throw new ArgumentNullException(nameof(orderPieceState));
 
-        OrderGroupHost = new ClassicPaneHost("订单 / 排版组", BuildOrderGroupDemo());
-        PieceListHost = new ClassicPaneHost("裁片列表 · DEMO", BuildPieceListDemo());
-        ProgressSummaryHost = new ClassicPaneHost("进度汇总 · DEMO", BuildProgressDemo());
-        LayoutCandidateHost = new ClassicPaneHost("版型数量：6 · DEMO", BuildCandidateDemo());
+        OrderGroupHost = new ClassicPaneHost("订单 / 排版组", new OrderGroupPanelView(OrderPieceState));
+        PieceListHost = new ClassicPaneHost("裁片列表 · DEMO", new PieceCardListView(OrderPieceState));
+        ProgressSummaryHost = new ClassicPaneHost("进度汇总 · DEMO", new ProgressSummaryView(OrderPieceState));
+        LayoutCandidateHost = new ClassicPaneHost("CAD 参数", null);
         OutputInformationHost = new ClassicPaneHost("排版输出信息 · DEMO", BuildOutputDemo());
         PersistentPaneHosts =
         [
@@ -38,13 +50,21 @@ public sealed class AppShellView : UserControl
 
         VerticalRuler = BuildVerticalRuler();
         HorizontalRuler = BuildHorizontalRuler();
+        CadWorkspace = new CadWorkspaceHost(_viewModel.CadHost, OpenImportModule);
+        CadProperties = new CadPropertyPane(_viewModel.CadHost);
+        _content.HorizontalAlignment = HorizontalAlignment.Stretch;
+        _content.VerticalAlignment = VerticalAlignment.Stretch;
+        _content.Margin = new Thickness(70, 38);
+        _content.Background = AppTheme.ClassicPanelBackground;
+        _content.IsVisible = false;
         CanvasSurface = new Border
         {
             Background = AppTheme.CadCanvasBackground,
             BorderBrush = AppTheme.ClassicBorder,
             BorderThickness = new Thickness(0, 0, 1, 0),
-            Child = BuildCanvasDemo(),
+            Child = CadWorkspace,
         };
+        LayoutCandidateHost.HostedContent = CadProperties;
         LeftRail = BuildLeftRail();
         RightRail = BuildRightRail();
         BodyGrid = BuildBody();
@@ -60,11 +80,17 @@ public sealed class AppShellView : UserControl
         Content = BuildLayout();
 
         _viewModel.SnapshotChanged += (_, snapshot) => RefreshSnapshot(snapshot);
+        _viewModel.CadHost.Changed += (_, _) =>
+        {
+            if (_viewModel.CurrentModule?.Id == "M02" && _viewModel.CadHost.Loops.Count > 0)
+                ShowModule(_viewModel.Modules.Single(module => module.Id == "M03"));
+        };
         ShowModule(_viewModel.Modules.Single(module => module.Id == "M03"));
         RefreshSnapshot(_viewModel.Snapshot);
     }
 
     public ContentControl WorkspaceContent => _content;
+    public OrderPiecePanelState OrderPieceState { get; }
     public TopCommandArea TopCommands { get; }
     public Grid BodyGrid { get; }
     public Grid LeftRail { get; }
@@ -76,6 +102,8 @@ public sealed class AppShellView : UserControl
     public ClassicPaneHost OutputInformationHost { get; }
     public IReadOnlyList<ClassicPaneHost> PersistentPaneHosts { get; }
     public Border CanvasSurface { get; }
+    public CadWorkspaceHost CadWorkspace { get; }
+    public CadPropertyPane CadProperties { get; }
     public Border VerticalRuler { get; }
     public Border HorizontalRuler { get; }
     public Border StatusBar { get; }
@@ -83,6 +111,7 @@ public sealed class AppShellView : UserControl
 
     private Control BuildLayout()
     {
+        var bodyLayer = new Grid { Children = { BodyGrid, _content } };
         var grid = new Grid
         {
             ColumnDefinitions = ColumnDefinitions.Parse("*"),
@@ -90,9 +119,9 @@ public sealed class AppShellView : UserControl
             Background = AppTheme.ClassicPanelBackground,
         };
         grid.Children.Add(TopCommands);
-        grid.Children.Add(BodyGrid);
+        grid.Children.Add(bodyLayer);
         grid.Children.Add(StatusBar);
-        Grid.SetRow(BodyGrid, 1);
+        Grid.SetRow(bodyLayer, 1);
         Grid.SetRow(StatusBar, 2);
         return grid;
     }
@@ -100,7 +129,7 @@ public sealed class AppShellView : UserControl
     private TopCommandArea BuildTopBar() => new(command =>
     {
         _viewModel.ActivateToolbarCommand(command);
-        _content.Content = _viewModel.CurrentView;
+        RefreshModuleOverlay();
     });
 
     private Grid BuildBody()
@@ -175,7 +204,18 @@ public sealed class AppShellView : UserControl
     private void ShowModule(ModuleDescriptor module)
     {
         _viewModel.Select(module);
+        RefreshModuleOverlay();
+    }
+
+    private void RefreshModuleOverlay()
+    {
         _content.Content = _viewModel.CurrentView;
+        _content.IsVisible = _viewModel.CurrentModule?.Id == "M02";
+    }
+
+    private void OpenImportModule()
+    {
+        ShowModule(_viewModel.Modules.Single(module => module.Id == "M02"));
     }
 
     private void RefreshSnapshot(WorkspaceSnapshot snapshot)
@@ -250,31 +290,6 @@ public sealed class AppShellView : UserControl
         };
         return new Grid { Children = { material, evidence } };
     }
-
-    private static Control BuildOrderGroupDemo() => CompactText(
-        "P_00030; ch 0\n▾ 贴皮测试（皮）\n   └ 40\n添加组  删除  添加\n40                         片数：10");
-
-    private static Control BuildPieceListDemo()
-    {
-        var list = new StackPanel { Spacing = 1 };
-        var sizes = new[] { "205*110", "173*129", "77*169", "172*75", "104*70", "104*96" };
-        for (var index = 0; index < sizes.Length; index++)
-        {
-            list.Children.Add(new Border
-            {
-                Height = 57,
-                Background = AppTheme.DemoPanelBackground,
-                BorderBrush = AppTheme.ClassicBorder,
-                BorderThickness = new Thickness(0, 0, 0, 1),
-                Padding = new Thickness(3, 2),
-                Child = CompactText($"{index + 1}  ☑  40             {sizes[index]}\n任意角度  0 | 排完\n单套 1  套数 1  余量 100  总量 100"),
-            });
-        }
-        return new ScrollViewer { Content = list };
-    }
-
-    private static Control BuildProgressDemo() => CompactText(
-        "总数：900/1000   面积：5.56/6.39(m²)\n组进度：████░░░░ 13.07%\n总订单：900/12100  5.56/77.23(m²)\n█████████░ 92.81%");
 
     private static Control BuildCandidateDemo() => CompactText(
         "2  ■ 61.60%  1000片\n   宽1.380 × 长10.085 × 层1\n3  ■ 58.42%  无限长\n4  ■ 54.18%  无限长\n5  ■ 49.76%  无限长\n6  ■ 47.33%  无限长");

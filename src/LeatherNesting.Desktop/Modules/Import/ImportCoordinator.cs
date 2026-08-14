@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using LeatherNesting.Application;
 using LeatherNesting.Desktop.Workspace;
+using LeatherNesting.Desktop.Modules.CadCanvas;
 using LeatherNesting.Domain;
 
 namespace LeatherNesting.Desktop.Modules.Import;
@@ -14,7 +15,9 @@ public sealed class ImportCoordinator : IImportCoordinator
     private readonly IWorkspaceSession workspace;
     private readonly IWorkspaceCommands workspaceCommands;
     private readonly IImportWorkbenchFactory? workbenchFactory;
+    private readonly CadHostState? cadHost;
     private ImportDxfPreparation? _preparation;
+    private IReadOnlyList<LeatherNesting.Geometry.Loop2D>? _preparedLoops;
 
     public ImportCoordinator(
         ImportDxfUseCase importDxf,
@@ -22,7 +25,8 @@ public sealed class ImportCoordinator : IImportCoordinator
         IImportGeometryReader geometryReader,
         IWorkspaceSession workspace,
         IWorkspaceCommands workspaceCommands,
-        IImportWorkbenchFactory? workbenchFactory = null)
+        IImportWorkbenchFactory? workbenchFactory = null,
+        CadHostState? cadHost = null)
     {
         this.importDxf = importDxf ?? throw new ArgumentNullException(nameof(importDxf));
         this.projectStore = projectStore ?? throw new ArgumentNullException(nameof(projectStore));
@@ -30,6 +34,7 @@ public sealed class ImportCoordinator : IImportCoordinator
         this.workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         this.workspaceCommands = workspaceCommands ?? throw new ArgumentNullException(nameof(workspaceCommands));
         this.workbenchFactory = workbenchFactory;
+        this.cadHost = cadHost;
         ImportModule.BindCoordinator(this);
     }
 
@@ -41,6 +46,7 @@ public sealed class ImportCoordinator : IImportCoordinator
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         _preparation = null;
+        _preparedLoops = null;
         State = new ImportWorkflowState(ProjectDocument.CreateNew(name.Trim()), null);
         PublishCurrentProject();
     }
@@ -49,14 +55,18 @@ public sealed class ImportCoordinator : IImportCoordinator
     {
         if (State.Project is null) throw new InvalidOperationException("请先新建项目。");
         _preparation = await importDxf.InspectAsync(path, cancellationToken);
+        _preparedLoops = await geometryReader.ReadAsync(path, cancellationToken);
         State = State with { Inspection = _preparation.Result };
     }
 
     public void ConfirmMillimetres()
     {
         if (State.Project is null || _preparation is null) throw new InvalidOperationException("没有可确认的 DXF 导入。");
+        var sourcePath = _preparation.SourcePath;
         var project = _preparation.CommitTo(State.Project, UnitDecision.ConfirmedMillimetres);
+        cadHost?.LoadConfirmedImport(sourcePath, _preparedLoops ?? []);
         _preparation = null;
+        _preparedLoops = null;
         State = new ImportWorkflowState(project, null);
         PublishCurrentProject();
     }
@@ -64,6 +74,7 @@ public sealed class ImportCoordinator : IImportCoordinator
     public void CancelImport()
     {
         _preparation = null;
+        _preparedLoops = null;
         State = State with { Inspection = null };
     }
 
