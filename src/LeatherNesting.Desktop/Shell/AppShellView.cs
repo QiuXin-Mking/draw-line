@@ -14,9 +14,9 @@ public sealed class AppShellView : UserControl
 {
     private readonly AppShellViewModel _viewModel;
     private readonly ContentControl _content = new();
-    private readonly TextBlock _statusText = new();
-    private readonly TextBlock _statusProjectText = new();
-    private readonly TextBlock _statusVersionText = new();
+    private readonly TextBlock _statusText = new() { Foreground = AppTheme.PrimaryText };
+    private readonly TextBlock _statusProjectText = new() { Foreground = AppTheme.PrimaryText };
+    private readonly TextBlock _statusVersionText = new() { Foreground = AppTheme.PrimaryText };
 
     public AppShellView() : this(DesktopComposition.CreateShellViewModel())
     {
@@ -55,12 +55,12 @@ public sealed class AppShellView : UserControl
         _content.HorizontalAlignment = HorizontalAlignment.Stretch;
         _content.VerticalAlignment = VerticalAlignment.Stretch;
         _content.Margin = new Thickness(70, 38);
-        _content.Background = AppTheme.ClassicPanelBackground;
+        _content.Background = AppTheme.PanelSurface;
         _content.IsVisible = false;
         CanvasSurface = new Border
         {
-            Background = AppTheme.CadCanvasBackground,
-            BorderBrush = AppTheme.ClassicBorder,
+            Background = AppTheme.CanvasBlack,
+            BorderBrush = AppTheme.ClassicBorderNeutral,
             BorderThickness = new Thickness(0, 0, 1, 0),
             Child = CadWorkspace,
         };
@@ -116,7 +116,7 @@ public sealed class AppShellView : UserControl
         {
             ColumnDefinitions = ColumnDefinitions.Parse("*"),
             RowDefinitions = RowDefinitions.Parse("Auto,*,Auto"),
-            Background = AppTheme.ClassicPanelBackground,
+            Background = AppTheme.PanelSurface,
         };
         grid.Children.Add(TopCommands);
         grid.Children.Add(bodyLayer);
@@ -138,7 +138,7 @@ public sealed class AppShellView : UserControl
         {
             RowDefinitions = RowDefinitions.Parse("*,20"),
             ColumnDefinitions = ColumnDefinitions.Parse("22,*"),
-            Background = AppTheme.CadCanvasBackground,
+            Background = AppTheme.CanvasBlack,
             Children = { VerticalRuler, CanvasSurface, HorizontalRuler },
         };
         Grid.SetColumn(CanvasSurface, 1);
@@ -194,8 +194,8 @@ public sealed class AppShellView : UserControl
         return new Border
         {
             Height = AppTheme.StatusBarHeight,
-            Background = AppTheme.ClassicHeaderBackground,
-            BorderBrush = AppTheme.ClassicBorder,
+            Background = AppTheme.StatusSurface,
+            BorderBrush = AppTheme.ClassicBorderNeutral,
             BorderThickness = new Thickness(1, 1, 1, 0),
             Child = row,
         };
@@ -229,11 +229,11 @@ public sealed class AppShellView : UserControl
     private static Border BuildVerticalRuler() => new()
     {
         Width = 22,
-        Background = AppTheme.RulerBackground,
+        Background = AppTheme.RulerChrome,
         Child = new TextBlock
         {
             Text = "0\n\n100\n\n200\n\n300\n\n400\n\n500",
-            Foreground = AppTheme.RulerForeground,
+            Foreground = AppTheme.RulerTick,
             FontSize = 9,
             TextAlignment = TextAlignment.Center,
         },
@@ -242,57 +242,16 @@ public sealed class AppShellView : UserControl
     private static Border BuildHorizontalRuler() => new()
     {
         Height = 20,
-        Background = AppTheme.RulerBackground,
+        Background = AppTheme.RulerChrome,
         Child = new TextBlock
         {
             Text = "0        100        200        300        400        500        600        700        800",
-            Foreground = AppTheme.RulerForeground,
+            Foreground = AppTheme.RulerTick,
             FontSize = 9,
             TextTrimming = TextTrimming.CharacterEllipsis,
             VerticalAlignment = VerticalAlignment.Center,
         },
     };
-
-    private static Control BuildCanvasDemo()
-    {
-        var material = new Border
-        {
-            Width = 54,
-            Height = 420,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 28, 0, 0),
-            Background = new SolidColorBrush(Color.FromRgb(0x32, 0x43, 0x6D)),
-            BorderBrush = Brushes.Red,
-            BorderThickness = new Thickness(1),
-            Child = new TextBlock
-            {
-                Text = "DEMO\n\n裁\n片\n排\n样",
-                Foreground = AppTheme.RulerForeground,
-                FontSize = 9,
-                TextAlignment = TextAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            },
-        };
-        var evidence = new Border
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(8),
-            Padding = new Thickness(5, 3),
-            Background = new SolidColorBrush(Color.FromArgb(0xC0, 0x65, 0x4A, 0x31)),
-            Child = new TextBlock
-            {
-                Text = "DEMO  序号  名称    刀  层  片\n      2    40    1000  1  1000",
-                Foreground = Brushes.White,
-                FontSize = 10,
-            },
-        };
-        return new Grid { Children = { material, evidence } };
-    }
-
-    private static Control BuildCandidateDemo() => CompactText(
-        "2  ■ 61.60%  1000片\n   宽1.380 × 长10.085 × 层1\n3  ■ 58.42%  无限长\n4  ■ 54.18%  无限长\n5  ■ 49.76%  无限长\n6  ■ 47.33%  无限长");
 
     private static Control BuildOutputDemo() => CompactText(
         "          ◔  61.60%\n■ 已利用    ■ 未利用\n材料：宽1.380 × 长10.085 × 层数1\n面积：8.35 / 13.92(m²)\n片数：1000 × 1 = 1000片\n单耗：0.0139  总耗：13.9169\n当前耗时：0分12秒");
@@ -301,7 +260,7 @@ public sealed class AppShellView : UserControl
     {
         Text = text,
         FontSize = 10.5,
-        Foreground = AppTheme.TextPrimary,
+        Foreground = AppTheme.PrimaryText,
         TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(3, 2),
         LineHeight = 14,

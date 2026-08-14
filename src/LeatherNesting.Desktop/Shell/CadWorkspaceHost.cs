@@ -23,7 +23,7 @@ public sealed class CadWorkspaceHost : Grid
         DrawingToolButtons = BuildToolRow();
         Canvas = new Border
         {
-            Background = AppTheme.CadCanvasBackground,
+            Background = AppTheme.CanvasBlack,
             Child = new Grid { Children = { _drawing, BuildAxes(), _status } },
         };
         _status.Margin = new Thickness(6);
@@ -33,13 +33,13 @@ public sealed class CadWorkspaceHost : Grid
         Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Background = AppTheme.ClassicPanelBackground,
+            Background = AppTheme.PanelSurface,
             Children = { FileOperationButtons[0], FileOperationButtons[1], FileOperationButtons[2], FileOperationButtons[3], _fileName, FileOperationButtons[5] },
         });
         Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Background = AppTheme.ClassicHeaderBackground,
+            Background = AppTheme.HeaderSurface,
             Children = { DrawingToolButtons[0], DrawingToolButtons[1], DrawingToolButtons[2], DrawingToolButtons[3], DrawingToolButtons[4] },
         });
         Children.Add(Canvas);
@@ -109,7 +109,7 @@ public sealed class CadWorkspaceHost : Grid
     private static Control BuildAxes() => new TextBlock
     {
         Text = "+X\n│\n└── +Y",
-        Foreground = Brushes.Red,
+        Foreground = AppTheme.MaterialBoundary,
         FontSize = 9,
         Margin = new Thickness(8, 7),
         IsHitTestVisible = false,

@@ -20,22 +20,22 @@ public sealed class ClassicPaneHost : Border
             Text = title,
             FontSize = 12,
             FontWeight = FontWeight.SemiBold,
-            Foreground = AppTheme.TextPrimary,
+            Foreground = AppTheme.PrimaryText,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(5, 0),
         };
         Header = new Border
         {
             Height = AppTheme.ClassicHeaderHeight,
-            Background = AppTheme.ClassicHeaderBackground,
-            BorderBrush = AppTheme.ClassicBorder,
+            Background = AppTheme.HeaderSurface,
+            BorderBrush = AppTheme.ClassicBorderNeutral,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Child = _titleText,
         };
         _contentHost = new ContentControl { Content = content };
 
-        Background = AppTheme.ClassicPanelBackground;
-        BorderBrush = AppTheme.ClassicBorder;
+        Background = AppTheme.PanelSurface;
+        BorderBrush = AppTheme.ClassicBorderNeutral;
         BorderThickness = new Thickness(1);
         Padding = new Thickness(0);
         Child = new Grid

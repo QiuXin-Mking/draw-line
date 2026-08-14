@@ -22,7 +22,7 @@ public sealed class TopCommandArea : Border
         var menu = new Menu
         {
             Height = AppTheme.MenuBarHeight,
-            Background = AppTheme.MenuBackground,
+            Background = AppTheme.MenuSurface,
             ItemsSource = MenuItems,
         };
 
@@ -41,13 +41,13 @@ public sealed class TopCommandArea : Border
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
             Height = AppTheme.ToolbarHeight,
-            Background = AppTheme.ToolbarBackground,
+            Background = AppTheme.ToolbarSurface,
         };
 
         ProductTitle = new TextBlock
         {
             Text = "LeatherNesting 卷料智能排样系统",
-            Foreground = Brushes.White,
+            Foreground = AppTheme.TitleText,
             FontSize = 12,
             FontWeight = FontWeight.SemiBold,
             VerticalAlignment = VerticalAlignment.Center,
@@ -89,7 +89,7 @@ public sealed class TopCommandArea : Border
         var titleBar = new Border
         {
             Height = AppTheme.TitleBarHeight,
-            Background = AppTheme.ClassicTitleBackground,
+            Background = AppTheme.ApplicationTitle,
             Child = ProductTitle,
         };
         var toolbarRow = new Grid
@@ -100,8 +100,8 @@ public sealed class TopCommandArea : Border
         Grid.SetColumn(UnitSelector, 1);
         Grid.SetColumn(operatorArea, 2);
 
-        Background = AppTheme.ToolbarBackground;
-        BorderBrush = AppTheme.ToolbarBorder;
+        Background = AppTheme.ToolbarSurface;
+        BorderBrush = AppTheme.ClassicBorderNeutral;
         BorderThickness = new Thickness(0, 0, 0, 1);
         Child = new StackPanel
         {
@@ -124,6 +124,7 @@ public sealed class TopCommandArea : Border
     private static MenuItem CreateMenuItem(string label) => new()
     {
         Header = label,
+        Foreground = AppTheme.PrimaryText,
         ItemsSource = new[]
         {
             new MenuItem
@@ -162,7 +163,7 @@ public sealed class ShellToolbarButton : Button
                 {
                     Text = command.Label,
                     FontSize = 12,
-                    Foreground = AppTheme.TextPrimary,
+                    Foreground = AppTheme.PrimaryText,
                     HorizontalAlignment = HorizontalAlignment.Center,
                 },
             },

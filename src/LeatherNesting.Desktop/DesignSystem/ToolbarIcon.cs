@@ -46,27 +46,27 @@ public static class ToolbarIconFactory
     public static ToolbarIcon Create(ToolbarIconKey key) => key switch
     {
         ToolbarIconKey.NewLayout => Icon(key,
-            Box(6, 4, 20, 24), Line(16, 13, 16, 24, AppTheme.ToolbarAccent), Line(10, 19, 22, 19, AppTheme.ToolbarAccent)),
+            Box(6, 4, 20, 24), Line(16, 13, 16, 24, AppTheme.ToolbarIconTeal), Line(10, 19, 22, 19, AppTheme.ToolbarIconTeal)),
         ToolbarIconKey.OrderManagement => Icon(key,
             Box(8, 6, 16, 22), Box(12, 3, 8, 6), Line(12, 14, 21, 14), Line(12, 19, 21, 19), Line(12, 24, 18, 24)),
         ToolbarIconKey.CadTools => Icon(key,
-            Line(5, 26, 18, 6), Line(18, 6, 27, 26), Line(5, 26, 27, 26), Line(9, 21, 24, 21), Circle(13, 12, 6, AppTheme.ToolbarAccent)),
+            Line(5, 26, 18, 6), Line(18, 6, 27, 26), Line(5, 26, 27, 26), Line(9, 21, 24, 21), Circle(13, 12, 6, AppTheme.ToolbarIconTeal)),
         ToolbarIconKey.StartNesting => Icon(key,
             Box(5, 6, 22, 20), Line(10, 10, 10, 22), Line(10, 16, 18, 11), Line(18, 11, 18, 21), Line(18, 21, 25, 16)),
         ToolbarIconKey.StopNesting => Icon(key,
-            Box(5, 6, 22, 20, AppTheme.ToolbarDanger), FilledBox(11, 11, 10, 10, AppTheme.ToolbarDanger)),
+            Box(5, 6, 22, 20, AppTheme.DangerText), FilledBox(11, 11, 10, 10, AppTheme.DangerText)),
         ToolbarIconKey.CancelNesting => Icon(key,
-            Circle(4, 4, 24, AppTheme.ToolbarWarning), Line(8, 8, 24, 24, AppTheme.ToolbarDanger, 3), Line(24, 8, 8, 24, AppTheme.ToolbarDanger, 3)),
+            Circle(4, 4, 24, AppTheme.WarningText), Line(8, 8, 24, 24, AppTheme.DangerText, 3), Line(24, 8, 8, 24, AppTheme.DangerText, 3)),
         ToolbarIconKey.ZoomExtent => Icon(key,
             Line(5, 12, 5, 5), Line(5, 5, 12, 5), Line(20, 5, 27, 5), Line(27, 5, 27, 12),
             Line(27, 20, 27, 27), Line(27, 27, 20, 27), Line(12, 27, 5, 27), Line(5, 27, 5, 20), Circle(11, 10, 10)),
         ToolbarIconKey.SettingsWindow => Icon(key,
-            Box(4, 6, 24, 19), Line(4, 11, 28, 11), Circle(8, 8, 2, AppTheme.ToolbarAccent), Line(10, 16, 22, 16), Line(10, 21, 18, 21)),
+            Box(4, 6, 24, 19), Line(4, 11, 28, 11), Circle(8, 8, 2, AppTheme.ToolbarIconTeal), Line(10, 16, 22, 16), Line(10, 21, 18, 21)),
         ToolbarIconKey.EqualWidthStrip => Icon(key,
-            Box(5, 8, 22, 6), Box(5, 19, 22, 6), Line(9, 5, 9, 28, AppTheme.ToolbarAccent), Line(23, 5, 23, 28, AppTheme.ToolbarAccent)),
+            Box(5, 8, 22, 6), Box(5, 19, 22, 6), Line(9, 5, 9, 28, AppTheme.ToolbarIconTeal), Line(23, 5, 23, 28, AppTheme.ToolbarIconTeal)),
         ToolbarIconKey.SendCut => Icon(key,
             Line(4, 8, 16, 16), Line(16, 16, 4, 24), Line(4, 24, 4, 8),
-            Line(15, 9, 28, 5), Line(28, 5, 24, 27), Line(24, 27, 15, 19), Line(10, 16, 25, 16, AppTheme.ToolbarWarning, 3)),
+            Line(15, 9, 28, 5), Line(28, 5, 24, 27), Line(24, 27, 15, 19), Line(10, 16, 25, 16, AppTheme.WarningText, 3)),
         _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
     };
 
@@ -76,7 +76,7 @@ public static class ToolbarIconFactory
     {
         StartPoint = new Point(x1, y1),
         EndPoint = new Point(x2, y2),
-        Stroke = brush ?? AppTheme.ToolbarIcon,
+        Stroke = brush ?? AppTheme.ToolbarIconTeal,
         StrokeThickness = thickness,
         StrokeLineCap = PenLineCap.Round,
     };
@@ -87,7 +87,7 @@ public static class ToolbarIconFactory
         {
             Width = width,
             Height = height,
-            Stroke = brush ?? AppTheme.ToolbarIcon,
+            Stroke = brush ?? AppTheme.ToolbarIconTeal,
             StrokeThickness = 2,
             Fill = Brushes.Transparent,
         };
@@ -110,7 +110,7 @@ public static class ToolbarIconFactory
         {
             Width = diameter,
             Height = diameter,
-            Stroke = brush ?? AppTheme.ToolbarIcon,
+            Stroke = brush ?? AppTheme.ToolbarIconTeal,
             StrokeThickness = 2,
             Fill = Brushes.Transparent,
         };

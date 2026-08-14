@@ -2,21 +2,71 @@
 
 ## Goal
 
-Reproduce the modal material/layout and nesting-strategy settings without redesigning them as pages.
+在现有五区固定主窗口上，以模态窗口 1:1 复刻竞品的“版型设置”和“排版设置”，让原系统操作员按熟悉的字段位置、默认值和确认/取消路径完成材料及排版策略配置，同时不伪造尚未接入的排样算法效果。
+
+## Background and Evidence
+
+- 继承父 PRD 的最高优先级决策：以操作员兼容为目标，不做原创视觉重设计。
+- 版型设置以 `05-图片/14.png` 和 `research/images-10-18.md:63-73` 为准。
+- 排版设置以 `05-图片/16.png`、`19.png`、`20.png`、`26.png`，以及 `research/images-10-18.md:87-97`、`research/images-19-27.md:9-22,60-66` 为准。
+- 图 21 证实“设置”菜单包含 `范围缩放、订单窗口、设置窗口、排版设置、发送设置、导入参数、导出参数、语言`；其中排版设置在 CAD 状态灰显。
+- 截图没有直接展示“版型设置”的触发入口；入口映射必须作为显式兼容决策记录，不能冒充截图事实。
 
 ## Requirements
 
-- Inherit parent decisions and use images 14, 16, 19, 20, 26.
-- Preserve dialog dimensions, grouping, field order, visible dropdown options, defaults, focus, and confirm/cancel placement.
-- Keep undocumented algorithm semantics configurable/TODO until verified.
+### R1 Modal ownership and shell continuity
+
+- 两个窗口必须以主窗口拥有的模态窗口打开，不得导航到独立页面或替换五区主体。
+- 弹窗关闭后保留订单、裁片、CAD/排样画布和右侧区域的原状态。
+- 弹窗使用经典 Windows 白灰面板、细边框、小字号、高密度字段和右下角确定/取消按钮。
+
+### R2 “版型设置” contract
+
+- 目标尺寸按图 14 约 570×335 的竞品工作区比例换算，并居中偏上覆盖画布。
+- 字段顺序和默认值：`版型名称` 空；`版型方向` 横向/纵向且纵向选中；`材料宽度(mm)` 1380.00；`材料长度(mm)` 0.00 且初始焦点；`材料层数` 1；`多层余片` 补齐；`材料边缘(mm)` 0.01；`裁片间距(mm)` 1.00。
+- 只提供截图证实的 `横向、纵向、补齐` 可见选择，不推测多层余片的其他选项。
+- 确定时仅写入共享的内存配置状态并更新明确的配置摘要；取消时不得改变已确认状态。
+
+### R3 “排版设置” contract
+
+- 目标尺寸按图 16/19/20/26 约占工作区宽 37%、高 37%，居中覆盖画布。
+- `常规参数` 区字段顺序/default：排版限时 0 分 10 秒；需排裁片组 `当前组`；排版角度 `任意角度`（图 19/20/26 状态可为 `水平(0°)`）；微动角度 0.00。
+- 下区字段顺序/default：裁片类型 `自动类型`；裁片顺序 `自动顺序`；凹凸比例 0.70；`强制阵列规整、小片集中、尾部调整、纯阵列` 均未选。
+- 裁片类型只列截图证实的 `自动类型、同部件裁片、不同部件裁片`。
+- 裁片顺序只列截图证实的 `自动顺序、类型集中、自定义、自定义2`。
+- 未被截图完整证实的片组、角度和其他下拉值不扩展；算法语义保持 TODO/演示限制说明。
+- 确定时只写入共享内存配置；取消时保持已确认值不变；不得声称已改变真实排样算法。
+
+### R4 Entry availability
+
+- `设置` 一级菜单按图 21 的顺序替换当前统一 TODO 子项，并根据当前工作状态控制 `排版设置` 可用性。
+- `设置窗口` 大图标继续承担已记录的设置面板入口，不偷换为版型/排版设置。
+- “版型设置”和“排版设置”的快捷触发关系按本任务最终入口决策实现，且自动化测试必须锁定。
+
+### R5 Validation and honesty
+
+- 宽度、长度、边缘、间距、微动角度和凹凸比例接受可解析的非负数；层数为正整数；分/秒为非负整数。
+- 无效输入保持弹窗打开，在对应字段附近显示中文错误，不写入共享状态。
+- `材料长度 0.00` 仅保留为证据默认值，不在本任务中推导“无限长”业务公式。
+- 配置状态不持久化到磁盘，不启动真实排样，不生成版型结果；这些能力保持明确 TODO。
 
 ## Acceptance Criteria
 
-- [ ] Both modal dialogs overlay the persistent main shell and visually align to their references.
-- [ ] Confirm/cancel and validated field state are testable; unsupported algorithm effects are not claimed.
+- [ ] 两个模态窗口分别与图 14、16/19/20/26 的尺寸比例、分组、字段顺序、默认值、焦点、复选状态和按钮位置一致。
+- [ ] 弹窗打开时五区主窗口仍作为底层可见，且不产生第二套工具栏、画布、标尺或侧栏。
+- [ ] 版型设置确定/取消、排版设置确定/取消及错误输入均有自动化测试；取消和错误不会污染已确认状态。
+- [ ] 设置菜单顺序与图 21 一致，快捷入口映射及状态可用性有自动化测试。
+- [ ] 仅展示证实的下拉选项；未知选项、算法影响、持久化和真实排样均不被虚构。
+- [ ] 在 1366×768 验收视口进行同尺寸截图对照；明显改变窗口几何或字段顺序不算完成。
+- [ ] Desktop 测试、全解决方案测试、构建和 `git diff --check` 通过。
 
-## Notes
+## Out of Scope
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 真实排样算法启动、停止、取消及策略参数对算法的实际影响。
+- 排样结果列表、密集排样画布和右下利用率饼图；归属后续 `clone-nesting-result-dashboard`。
+- 设置持久化、预设管理、材料数据库、发送设置和设备通信。
+- 未由截图/语音证实的下拉全集、数值范围和计算公式。
+
+## Open Product Decision
+
+- 截图未直接展示“版型设置”的入口。需要确认是否采用推荐兼容映射：`新建排版` 打开“版型设置”，`开始排版` 打开“排版设置”，同时 `设置 > 排版设置` 在已有版型/材料配置时可用。

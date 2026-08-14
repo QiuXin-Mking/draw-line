@@ -1,0 +1,5 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Frontend design-system and component contracts"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Persistent shell and cloned component ownership"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/prd.md","reason":"Parent 1:1 visual compatibility decision"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/research/images-10-18.md","reason":"Main shell, material modal and nesting-state visual evidence"}
+{"file":".trellis/tasks/08-13-simge-complete-ui-clone/research/images-19-27.md","reason":"Fixed workstation and complete output-state visual evidence"}

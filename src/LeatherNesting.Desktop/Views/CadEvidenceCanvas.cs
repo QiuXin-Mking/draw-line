@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Desktop.Views;
@@ -8,8 +9,8 @@ namespace LeatherNesting.Desktop.Views;
 /// <summary>Black evidence-aligned read-only projection for confirmed imported geometry.</summary>
 public sealed class CadEvidenceCanvas : Control
 {
-    private static readonly IPen OuterPen = new Pen(Brushes.White, 1);
-    private static readonly IPen InnerPen = new Pen(Brushes.LimeGreen, 1);
+    private static readonly IPen OuterPen = new Pen(AppTheme.GeometryOuterContour, 1);
+    private static readonly IPen InnerPen = new Pen(AppTheme.GeometryInternalLine, 1);
     private IReadOnlyList<Loop2D> _loops = [];
 
     public void SetData(IReadOnlyList<Loop2D> loops)
@@ -25,7 +26,7 @@ public sealed class CadEvidenceCanvas : Control
 
     public override void Render(DrawingContext context)
     {
-        context.FillRectangle(Brushes.Black, new Rect(Bounds.Size));
+        context.FillRectangle(AppTheme.CanvasBlack, new Rect(Bounds.Size));
         if (_loops.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return;
 
         var points = _loops.SelectMany(loop => loop.Curves).SelectMany(Sample).ToArray();

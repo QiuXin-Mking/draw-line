@@ -38,9 +38,34 @@ Questions to answer:
 
 ## Styling Patterns
 
-<!-- How styles are applied (CSS modules, styled-components, Tailwind, etc.) -->
+The fixed workstation and its classic modal dialogs use semantic brushes from
+`AppTheme`. Screenshot-evidence colors are centralized there; cloned surfaces
+must not introduce local near-match chrome colors.
 
-(To be filled by the team)
+Keep these role families separate even when two roles currently have the same
+RGB value:
+
+- Application chrome: title, menu, toolbar, panel, header, status, border, and text.
+- Interaction state: hover, classic focus, selection, warning, danger, and disabled.
+- Workstation surfaces: piece-card cyan, progress cyan, canvas black, and ruler chrome.
+- CAD geometry: material boundary, outer contour, internal line, and selection fill.
+
+Clone components consume the explicit semantic names such as `PanelSurface`,
+`PieceCardCyan`, and `GeometryInternalLine`. Compatibility aliases such as
+`ClassicPanelBackground` remain only so untouched legacy modules continue to
+compile; new clone code must not depend on them.
+
+```csharp
+Background = AppTheme.PanelSurface;
+BorderBrush = AppTheme.ClassicBorderNeutral;
+
+// Geometry semantics stay independent from application chrome.
+context.DrawGeometry(null, new Pen(AppTheme.GeometryInternalLine, 1), geometry);
+```
+
+Raw colors remain valid for evidenced per-item geometry or layer swatches whose
+meaning is data-specific. They are forbidden for cloned window chrome, pane
+surfaces, focus state, progress, rulers, or shared canvas semantics.
 
 ---
 

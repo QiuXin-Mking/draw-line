@@ -13,6 +13,7 @@ public sealed class PiecePropertiesWindow : Window
         Title = "属性 · DEMO";
         Width = 1180;
         Height = 720;
+        Background = AppTheme.PanelSurface;
         Content = new PiecePropertiesView(state);
     }
 }
@@ -26,6 +27,7 @@ public sealed class PiecePropertiesView : UserControl
     public PiecePropertiesView(OrderPiecePanelState state)
     {
         _state = state;
+        Background = AppTheme.PanelSurface;
         SplitRatio = "46*,54*";
         InitialFocusField = "单套";
         FirstSingleSetEditor = new TextBox
@@ -35,7 +37,7 @@ public sealed class PiecePropertiesView : UserControl
             Height = 24,
             Padding = new Thickness(2, 0),
             FontSize = 9.5,
-            BorderBrush = AppTheme.Accent,
+            BorderBrush = AppTheme.ClassicFocus,
             BorderThickness = new Thickness(2),
         };
         AdvancedPropertiesCheckBox = new CheckBox { Content = "高级属性", IsChecked = true };
@@ -51,8 +53,8 @@ public sealed class PiecePropertiesView : UserControl
 
         var preview = new Border
         {
-            Background = Brushes.Black,
-            BorderBrush = AppTheme.ClassicBorder,
+            Background = AppTheme.CanvasBlack,
+            BorderBrush = AppTheme.ClassicBorderNeutral,
             BorderThickness = new Thickness(0, 0, 1, 0),
             Child = new Border
             {
@@ -60,11 +62,11 @@ public sealed class PiecePropertiesView : UserControl
                 Height = 390,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Background = new SolidColorBrush(Color.FromArgb(0x99, 0x12, 0x68, 0x70)),
-                BorderBrush = Brushes.White,
+                Background = AppTheme.GeometrySelectionFill,
+                BorderBrush = AppTheme.GeometryOuterContour,
                 BorderThickness = new Thickness(2),
                 CornerRadius = new CornerRadius(70, 20, 90, 35),
-                Child = new TextBlock { Text = "●     ●\n\nDEMO 裁片预览\n\n绿色内线 / 蓝色孔点", Foreground = Brushes.LimeGreen, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+                Child = new TextBlock { Text = "●     ●\n\nDEMO 裁片预览\n\n绿色内线 / 蓝色孔点", Foreground = AppTheme.GeometryInternalLine, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
             },
         };
         var split = new Grid { ColumnDefinitions = ColumnDefinitions.Parse(SplitRatio), Children = { preview, right } };
@@ -143,9 +145,9 @@ public sealed class PiecePropertiesView : UserControl
         {
             var cell = new Border
             {
-                BorderBrush = AppTheme.SurfaceBorder,
+                BorderBrush = AppTheme.ClassicBorderNeutral,
                 BorderThickness = new Thickness(0, 0, 1, 1),
-                Background = header ? AppTheme.ClassicHeaderBackground : Brushes.White,
+                Background = header ? AppTheme.HeaderSurface : AppTheme.PanelSurface,
                 Child = new TextBlock { Text = values[i], FontSize = 9.5, FontWeight = header ? FontWeight.SemiBold : FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Center },
             };
             grid.Children.Add(cell); Grid.SetColumn(cell, i);

@@ -100,8 +100,8 @@ public sealed class PieceCardView : Border
     public PieceCardView(OrderPiecePanelState state, OrderPieceRecord piece)
     {
         Height = 76;
-        Background = AppTheme.DemoPanelBackground;
-        BorderBrush = AppTheme.ClassicBorder;
+        Background = AppTheme.PieceCardCyan;
+        BorderBrush = AppTheme.ClassicBorderNeutral;
         BorderThickness = new Thickness(0, 0, 0, 1);
         Padding = new Thickness(2, 1);
 
@@ -120,7 +120,7 @@ public sealed class PieceCardView : Border
             Height = 45,
             CornerRadius = new CornerRadius(13, 5, 14, 7),
             Background = ThumbnailBrush(piece.Index),
-            BorderBrush = Brushes.White,
+            BorderBrush = AppTheme.GeometryOuterContour,
             BorderThickness = new Thickness(1),
         };
         var identityControls = new StackPanel
@@ -138,7 +138,7 @@ public sealed class PieceCardView : Border
             new TextBlock { Text = piece.Index.ToString(), FontSize = 10 }, identityControls, thumbnail,
         }
         };
-        var size = new TextBlock { Text = piece.Size, Foreground = Brushes.Red, FontSize = 11, FontWeight = FontWeight.Bold };
+        var size = new TextBlock { Text = piece.Size, Foreground = AppTheme.DangerText, FontSize = 11, FontWeight = FontWeight.Bold };
         var dimensions = new TextBlock { Text = piece.BoundingDimensions, FontSize = 9.5, HorizontalAlignment = HorizontalAlignment.Right };
         var header = new Grid { ColumnDefinitions = ColumnDefinitions.Parse("*,Auto"), Children = { size, dimensions } };
         Grid.SetColumn(dimensions, 1);
@@ -219,6 +219,6 @@ public sealed class ProgressSummaryView : UserControl
         Height = 15,
         ShowProgressText = true,
         ProgressTextFormat = text,
-        Foreground = AppTheme.ToolbarAccent,
+        Foreground = AppTheme.ProgressCyan,
     };
 }

@@ -82,6 +82,16 @@ public sealed class TopCommandAreaTests
 
     [Fact]
     [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-007")]
+    public void Menu_labels_use_explicit_dark_text_on_the_light_menu_surface()
+    {
+        var area = new TopCommandArea(_ => { });
+
+        Assert.All(area.MenuItems, item => Assert.Same(AppTheme.PrimaryText, item.Foreground));
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
     [Trait("TestId", "TOP-004")]
     public void Toolbar_clicks_navigate_through_the_shell_and_placeholder_actions_remain_honest()
     {

@@ -16,6 +16,7 @@ public sealed class CadPropertyPane : ScrollViewer
     public CadPropertyPane(CadHostState state)
     {
         ArgumentNullException.ThrowIfNull(state);
+        Background = AppTheme.PanelSurface;
         HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled;
         VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
         var panel = new StackPanel { Spacing = 1, Margin = new Thickness(2) };
