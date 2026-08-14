@@ -4,6 +4,7 @@ using Xunit;
 
 namespace LeatherNesting.Desktop.Tests.DesignSystem;
 
+[Collection("Avalonia UI")]
 public sealed class AppThemeColorTests
 {
     [Theory]
@@ -24,7 +25,7 @@ public sealed class AppThemeColorTests
     {
         var property = typeof(AppTheme).GetProperty(propertyName);
         Assert.NotNull(property);
-        var brush = Assert.IsType<SolidColorBrush>(property.GetValue(null));
+        var brush = Assert.IsAssignableFrom<ISolidColorBrush>(property.GetValue(null));
 
         Assert.Equal(Color.FromRgb(red, green, blue), brush.Color);
     }
@@ -69,7 +70,7 @@ public sealed class AppThemeColorTests
 
     private static void AssertNeutral(IBrush brush)
     {
-        var color = Assert.IsType<SolidColorBrush>(brush).Color;
+        var color = Assert.IsAssignableFrom<ISolidColorBrush>(brush).Color;
         Assert.Equal(color.R, color.G);
         Assert.Equal(color.G, color.B);
     }

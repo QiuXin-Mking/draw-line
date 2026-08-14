@@ -67,6 +67,17 @@ Raw colors remain valid for evidenced per-item geometry or layer swatches whose
 meaning is data-specific. They are forbidden for cloned window chrome, pane
 surfaces, focus state, progress, rulers, or shared canvas semantics.
 
+The fixed workstation requests the light Avalonia control theme explicitly.
+Text placed on evidence-locked light surfaces also sets a semantic foreground;
+do not rely on an operating-system theme to supply menu or status text colors.
+This prevents macOS dark mode from producing white labels or dark default inputs
+inside the cloned classic-light client.
+
+Shared `AppTheme` palette brushes must use `ImmutableSolidColorBrush`, rather
+than mutable dispatcher-owned `SolidColorBrush`. Palette contract tests use
+`ISolidColorBrush` and join the Avalonia UI collection, so the full parallel
+suite cannot read a mutable brush from another dispatcher thread.
+
 ---
 
 ## Accessibility

@@ -1,4 +1,5 @@
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace LeatherNesting.Desktop.DesignSystem;
 
@@ -76,5 +77,5 @@ public static class AppTheme
     public static IBrush DemoPanelBackground => PieceCardCyan;
 
     private static IBrush Brush(byte red, byte green, byte blue, byte alpha = 0xFF) =>
-        new SolidColorBrush(Color.FromArgb(alpha, red, green, blue));
+        new ImmutableSolidColorBrush(Color.FromArgb(alpha, red, green, blue));
 }

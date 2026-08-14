@@ -1,9 +1,11 @@
 using Avalonia.Controls;
+using Avalonia.Styling;
 using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Desktop.Modules.CadCanvas;
 using LeatherNesting.Desktop.Modules.Pieces;
 using LeatherNesting.Desktop.Shell;
+using LeatherNesting.Desktop.Views;
 using Xunit;
 
 namespace LeatherNesting.Desktop.Tests.DesignSystem;
@@ -11,6 +13,12 @@ namespace LeatherNesting.Desktop.Tests.DesignSystem;
 [Collection("Avalonia UI")]
 public sealed class CloneSurfaceColorTests
 {
+    [Fact]
+    public void Fixed_workstation_requests_the_light_control_theme()
+    {
+        Assert.Equal(ThemeVariant.Light, MainWindow.WorkstationThemeVariant);
+    }
+
     [Fact]
     public void Fixed_shell_reuses_chrome_roles_across_top_panes_canvas_and_status()
     {
