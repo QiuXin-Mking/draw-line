@@ -56,10 +56,11 @@ public sealed class CadWorkspaceHost : Grid
         Drawing.PointerExited += OnDrawingPointerExited;
         FileOperationButtons = BuildFileRow(requestImport);
         DrawingToolButtons = BuildToolRow();
+        Axes = new CadOriginAxes(Drawing) { IsHitTestVisible = false };
         Canvas = new Border
         {
             Background = AppTheme.CanvasBlack,
-            Child = new Grid { Children = { Drawing, BuildAxes(), _coordinates, _status } },
+            Child = new Grid { Children = { Drawing, Axes, _coordinates, _status } },
         };
         _status.Margin = new Thickness(6);
         _status.VerticalAlignment = VerticalAlignment.Bottom;
@@ -92,6 +93,8 @@ public sealed class CadWorkspaceHost : Grid
     public Border Canvas { get; }
 
     public CanvasView Drawing { get; }
+
+    public CadOriginAxes Axes { get; }
 
     /// <summary>Top-left coordinate readout text (empty when the pointer is outside the canvas).</summary>
     public string CoordinateText => _coordinates.Text ?? string.Empty;
@@ -202,15 +205,6 @@ public sealed class CadWorkspaceHost : Grid
         button.IsEnabled = false;
         return button;
     }
-
-    private static Control BuildAxes() => new TextBlock
-    {
-        Text = "+X\n│\n└── +Y",
-        Foreground = AppTheme.MaterialBoundary,
-        FontSize = 9,
-        Margin = new Thickness(8, 7),
-        IsHitTestVisible = false,
-    };
 
     private void Refresh()
     {
