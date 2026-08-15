@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Media;
 using LeatherNesting.Desktop.DesignSystem.CadTools;
 using LeatherNesting.Desktop.Modules.CadCanvas.Toolbar;
 using Xunit;
@@ -25,6 +26,7 @@ public sealed class CadToolIconFactoryTests
             var viewbox = Assert.IsType<Viewbox>(CadToolIconFactory.Create(key));
             Assert.Equal(18, viewbox.Width);
             Assert.Equal(18, viewbox.Height);
+            Assert.Equal(Stretch.Uniform, viewbox.Stretch);
 
             var canvas = Assert.IsType<Canvas>(viewbox.Child);
             Assert.Equal(18, canvas.Width);
@@ -46,6 +48,34 @@ public sealed class CadToolIconFactoryTests
 
             Assert.NotSame(first, second);
             Assert.NotSame(first.Child, second.Child);
+
+            var firstShapes = Assert.IsType<Canvas>(first.Child).Children;
+            var secondShapes = Assert.IsType<Canvas>(second.Child).Children;
+            Assert.Equal(firstShapes.Count, secondShapes.Count);
+            Assert.All(firstShapes.Zip(secondShapes), pair => Assert.NotSame(pair.First, pair.Second));
+        }
+    }
+
+    [Fact]
+    [Trait("Stage", "S2")]
+    public void Each_catalog_key_is_owned_by_exactly_its_declared_icon_group()
+    {
+        foreach (var tool in CadToolCatalog.All)
+        {
+            var results = new[]
+            {
+                CreateFromGroupA(tool.IconKey),
+                CreateFromGroupB(tool.IconKey),
+                CreateFromGroupC(tool.IconKey),
+                CreateFromGroupD(tool.IconKey),
+                CreateFromGroupE(tool.IconKey),
+            };
+
+            Assert.Equal(1, results.Count(result => result.Created));
+            Assert.True(results[(int)tool.Group].Created);
+            Assert.NotNull(results[(int)tool.Group].Icon);
+            Assert.All(results.Where((_, index) => index != (int)tool.Group), result =>
+                Assert.Null(result.Icon));
         }
     }
 
@@ -57,5 +87,35 @@ public sealed class CadToolIconFactoryTests
             CadToolIconFactory.Create((CadToolIconKey)int.MaxValue));
 
         Assert.Equal("key", error.ParamName);
+    }
+
+    private static (bool Created, Control? Icon) CreateFromGroupA(CadToolIconKey key)
+    {
+        var created = CadToolIconGroupA.TryCreate(key, out var icon);
+        return (created, icon);
+    }
+
+    private static (bool Created, Control? Icon) CreateFromGroupB(CadToolIconKey key)
+    {
+        var created = CadToolIconGroupB.TryCreate(key, out var icon);
+        return (created, icon);
+    }
+
+    private static (bool Created, Control? Icon) CreateFromGroupC(CadToolIconKey key)
+    {
+        var created = CadToolIconGroupC.TryCreate(key, out var icon);
+        return (created, icon);
+    }
+
+    private static (bool Created, Control? Icon) CreateFromGroupD(CadToolIconKey key)
+    {
+        var created = CadToolIconGroupD.TryCreate(key, out var icon);
+        return (created, icon);
+    }
+
+    private static (bool Created, Control? Icon) CreateFromGroupE(CadToolIconKey key)
+    {
+        var created = CadToolIconGroupE.TryCreate(key, out var icon);
+        return (created, icon);
     }
 }
