@@ -10,6 +10,7 @@ public sealed class CadOperationSession
     private IReadOnlyList<Loop2D> _previewLoops;
     private CadCommand? _pendingCommand;
     private bool _isPreviewing;
+    private IReadOnlyList<Loop2D>? _beforePreview;
 
     public CadOperationSession(IReadOnlyList<Loop2D> initialLoops)
     {
@@ -29,6 +30,7 @@ public sealed class CadOperationSession
         var result = command.Execute(context);
         if (result.Success)
         {
+            _beforePreview = _previewLoops;
             _previewLoops = result.ResultLoops;
             _pendingCommand = command;
             _isPreviewing = true;
@@ -45,16 +47,18 @@ public sealed class CadOperationSession
         _transaction.Record(_pendingCommand);
         _pendingCommand = null;
         _isPreviewing = false;
+        _beforePreview = null;
         return new CadCommandResult(_previewLoops);
     }
 
     /// <summary>Discards the pending preview and restores the last committed state.</summary>
     public void Cancel()
     {
+        if (_beforePreview is not null)
+            _previewLoops = _beforePreview;
         _pendingCommand = null;
         _isPreviewing = false;
-        // Restore from the last committed state
-        // For simplicity, we rely on the caller to reset _previewLoops
+        _beforePreview = null;
     }
 
     /// <summary>Undoes the last committed command.</summary>
