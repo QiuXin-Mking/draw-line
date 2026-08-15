@@ -120,3 +120,26 @@ RightRows = "62*,38*";
 Wrong: placing a complete `CadCanvasView` (including its own surrounding UI) inside the center canvas host. Correct: keep the current module selected/cached, and bind only its canvas/content contract into the shell's existing center surface.
 
 Tests must assert host count/order and prevent nested scroll viewers, duplicate rulers, duplicate toolbars, or full module pages in the center canvas.
+
+### Code-built menus: use `ItemsSource`, not `Items.Add`
+
+When building `Menu` / `ContextMenu` in code, populate the item collection via
+`ItemsSource = items` on a pre-built `IEnumerable`. Do not call `Items.Add(...)`
+per item: `ItemCollection.Add` runs an Avalonia dispatcher `VerifyAccess`, which
+throws `InvalidOperationException` ("different thread owns it") in headless tests
+that construct the control outside the UI-thread collection. `ItemsSource` avoids
+that path. Existing menu construction mirrors `TopCommandArea.CreateCommandItem`.
+
+```csharp
+// Correct: one ItemsSource assignment, dispatcher-safe in tests.
+var items = ShellContextMenu.Entries.OfType<ShellMenuCommand>()
+    .Select(command => new MenuItem { Header = command.Label, IsEnabled = command.IsEnabled });
+return new ContextMenu { ItemsSource = items };
+
+// Wrong: Items.Add throws in non-UI-thread test construction.
+var menu = new ContextMenu();
+menu.Items.Add(new MenuItem { Header = "…" });
+```
+
+Tests must assert item label/order and disabled states off the source contract
+plus the host's materialized `MenuItems` / `ContextMenu`.
