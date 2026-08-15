@@ -115,3 +115,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: CAD 交互功能：动态标尺 + 坐标提示 + 缩放联动
+
+**Date**: 2026-08-15
+**Task**: CAD 交互功能：动态标尺 + 坐标提示 + 缩放联动
+**Branch**: `main`
+
+### Summary
+
+G 区标尺由静态死文字改为自绘控件：CanvasView 暴露 ViewScale/ViewOriginModel/ViewChanged，CadRuler 订阅后随缩放/平移重绘自适应刻度；画布左上角红色坐标提示随鼠标移动更新、退出清空（AppTheme.CadCoordinateText 语义色）。新增 RUL-001..006，全量 377 测试通过；沉淀 headless GetPosition 恒为原点教训。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7e465b4` | (see git log) |
+| `f72f949` | (see git log) |
+| `801e8e4` | (see git log) |
+
+### Status
+
+[OK] **Completed**
