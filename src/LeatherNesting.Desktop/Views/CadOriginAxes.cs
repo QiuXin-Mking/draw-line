@@ -7,11 +7,16 @@ namespace LeatherNesting.Desktop.Views;
 
 /// <summary>Self-drawn X/Y axes anchored to the model origin (0,0).
 /// The axes translate with the canvas view and hide when the origin leaves the
-/// visible area. Arrows and +X/+Y labels use the shared material-boundary brush.</summary>
+/// visible area. Arrows and +X/+Y labels use the shared material-boundary brush.
+/// The origin, axis endpoints and labels are clamped into the control bounds so the
+/// indicator never overlaps surrounding toolbars or the coordinate readout.</summary>
 public sealed class CadOriginAxes : Control
 {
     /// <summary>Short axis length in model millimetres (X and Y).</summary>
     public const double AxisLengthMm = 10;
+
+    /// <summary>Minimum inset from the control edge so labels and arrows stay inside.</summary>
+    public const double EdgeMargin = 24;
 
     public CadOriginAxes(CanvasView source)
     {
@@ -37,26 +42,32 @@ public sealed class CadOriginAxes : Control
         OriginPixel.X >= 0 && OriginPixel.Y >= 0 &&
         OriginPixel.X <= Bounds.Width && OriginPixel.Y <= Bounds.Height;
 
+    /// <summary>Origin pixel pushed inside the control with an edge margin, so the
+    /// whole indicator (axes + labels) stays visible and never overlaps the toolbar.</summary>
+    public Point ClampedOrigin => new(
+        Clamp(OriginPixel.X, EdgeMargin, Math.Max(EdgeMargin, Bounds.Width - EdgeMargin)),
+        Clamp(OriginPixel.Y, EdgeMargin, Math.Max(EdgeMargin, Bounds.Height - EdgeMargin)));
+
     public override void Render(DrawingContext context)
     {
-        if (!IsOriginVisible || Bounds.Width <= 0 || Bounds.Height <= 0)
+        if (Bounds.Width <= 0 || Bounds.Height <= 0 || !IsOriginVisible)
             return;
 
-        var origin = OriginPixel;
+        var origin = ClampedOrigin;
         var pen = new Pen(AxisBrush, 1.5);
         var length = AxisLengthPx;
 
-        // X axis: short horizontal segment from the origin toward +X, arrow at the end.
-        var xEnd = new Point(origin.X + length, origin.Y);
+        // X axis: short horizontal segment from the origin toward +X, clamped to the width.
+        var xEnd = new Point(Math.Min(origin.X + length, Bounds.Width), origin.Y);
         context.DrawLine(pen, origin, xEnd);
         DrawArrowX(context, pen, xEnd);
-        DrawText(context, "+X", xEnd.X - 20, origin.Y - 16);
+        DrawLabelClamped(context, BuildText("+X"), xEnd.X - 18, origin.Y - 20);
 
-        // Y axis: short vertical segment from the origin toward +Y, arrow at the end.
-        var yEnd = new Point(origin.X, origin.Y - length);
+        // Y axis: short vertical segment from the origin toward +Y, clamped to the height.
+        var yEnd = new Point(origin.X, Math.Max(origin.Y - length, 0));
         context.DrawLine(pen, origin, yEnd);
         DrawArrowY(context, pen, yEnd);
-        DrawText(context, "+Y", origin.X + 6, yEnd.Y + 2);
+        DrawLabelClamped(context, BuildText("+Y"), origin.X + 8, yEnd.Y + 4);
     }
 
     private static void DrawArrowX(DrawingContext context, Pen pen, Point tip)
@@ -71,15 +82,20 @@ public sealed class CadOriginAxes : Control
         context.DrawLine(pen, tip, new Point(tip.X + 5, tip.Y + 8));
     }
 
-    private static void DrawText(DrawingContext context, string text, double x, double y)
+    private void DrawLabelClamped(DrawingContext context, FormattedText text, double x, double y)
     {
-        var formatted = new FormattedText(
-            text,
-            System.Globalization.CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            Typeface.Default,
-            10,
-            AppTheme.MaterialBoundary);
-        context.DrawText(formatted, new Point(x, y));
+        var cx = Clamp(x, 0, Math.Max(0, Bounds.Width - text.Width));
+        var cy = Clamp(y, 0, Math.Max(0, Bounds.Height - text.Height));
+        context.DrawText(text, new Point(cx, cy));
     }
+
+    private static FormattedText BuildText(string text) => new(
+        text,
+        System.Globalization.CultureInfo.CurrentCulture,
+        FlowDirection.LeftToRight,
+        Typeface.Default,
+        10,
+        AppTheme.MaterialBoundary);
+
+    private static double Clamp(double value, double min, double max) => Math.Clamp(value, min, max);
 }

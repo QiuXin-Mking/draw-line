@@ -88,6 +88,26 @@ public sealed class CadOriginAxesTests
         Assert.False(axes.IsOriginVisible);
     }
 
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "AXIS-006")]
+    public void Origin_is_clamped_inside_the_bounds_so_labels_never_overlap_the_toolbar()
+    {
+        var canvas = new CanvasView();
+        var axes = new CadOriginAxes(canvas) { Width = 200, Height = 200 };
+        axes.Measure(new Size(200, 200));
+        axes.Arrange(new Rect(0, 0, 200, 200));
+
+        // Origin projects near the top-left (10,10) — without clamping the +Y label
+        // would render above the control, overlapping the toolbar.
+        SetView(canvas, offset: new Point(10, 10), scale: 5);
+        Assert.Equal(new Point(10, 10), axes.OriginPixel);
+        var clamped = axes.ClampedOrigin;
+
+        Assert.True(clamped.X >= CadOriginAxes.EdgeMargin && clamped.Y >= CadOriginAxes.EdgeMargin, "origin must be pulled inside the edge margin");
+        Assert.True(clamped.X <= 200 - CadOriginAxes.EdgeMargin && clamped.Y <= 200 - CadOriginAxes.EdgeMargin);
+    }
+
     private static void SetView(CanvasView canvas, Point offset, double scale)
     {
         var scaleField = typeof(CanvasView).GetField("_scale", BindingFlags.Instance | BindingFlags.NonPublic);
