@@ -139,6 +139,7 @@ public sealed class TopCommandArea : Border
                     {
                         Header = ShellTopMenu.PlaceholderText,
                         IsEnabled = false,
+                        MinWidth = 140,
                     },
                 }
                 : entries.Select(CreateMenuEntry).ToArray(),
@@ -158,6 +159,7 @@ public sealed class TopCommandArea : Border
         {
             Header = command.Label,
             Foreground = AppTheme.PrimaryText,
+            IsEnabled = command.IsEnabled,
         };
         item.Click += (_, _) => _activateMenu(command);
         return item;

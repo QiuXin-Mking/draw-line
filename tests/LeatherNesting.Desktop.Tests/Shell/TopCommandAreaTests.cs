@@ -71,8 +71,19 @@ public sealed class TopCommandAreaTests
             editMenu.Items.OfType<MenuItem>().Select(item => item.Header));
         Assert.Equal(4, editMenu.Items.OfType<Separator>().Count());
 
+        var operationMenu = area.MenuItems.Single(item => Equals(item.Header, "操作"));
+        Assert.Equal(
+            ShellTopMenu.OperationMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            operationMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+        Assert.Empty(operationMenu.Items.OfType<Separator>());
+        var testItem = operationMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "测试项"));
+        Assert.False(testItem.IsEnabled);
         Assert.All(
-            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑")),
+            operationMenu.Items.OfType<MenuItem>().Where(item => !Equals(item.Header, "测试项")),
+            item => Assert.True(item.IsEnabled));
+
+        Assert.All(
+            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑") && !Equals(item.Header, "操作")),
             item =>
             {
                 var placeholder = Assert.Single(item.Items.Cast<object>());
@@ -164,7 +175,7 @@ public sealed class TopCommandAreaTests
 
         var fileMenu = area.MenuItems.Single(item => Equals(item.Header, "文件"));
         var importProgress = fileMenu.Items.Cast<MenuItem>()
-            .Single(item => Equals(item.Header, "导入排版进度（axn）"));
+            .Single(item => Equals(item.Header, "导入排版进度(axn)"));
         importProgress.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Assert.Equal("M02", viewModel.CurrentModule!.Id);
         Assert.Contains("导入排版进度", workspace.Snapshot.TodoHint);
@@ -202,6 +213,38 @@ public sealed class TopCommandAreaTests
         undo.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Assert.Equal("M03", viewModel.CurrentModule!.Id);
         Assert.Contains("撤销", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-010")]
+    public void Operation_menu_commands_navigate_through_the_shell_and_keep_test_item_disabled()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M07", 7),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var operationMenu = area.MenuItems.Single(item => Equals(item.Header, "操作"));
+        var startNesting = operationMenu.Items.OfType<MenuItem>()
+            .Single(item => Equals(item.Header, "开始排版"));
+        startNesting.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M08", viewModel.CurrentModule!.Id);
+        Assert.Contains("开始排版", workspace.Snapshot.TodoHint);
+
+        var testItem = operationMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "测试项"));
+        Assert.False(testItem.IsEnabled);
     }
 
     [Fact]

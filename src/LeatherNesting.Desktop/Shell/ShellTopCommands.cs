@@ -5,7 +5,7 @@ namespace LeatherNesting.Desktop.Shell;
 /// <summary>Stable top-level menu contract matching the desktop reference information architecture.</summary>
 public static class ShellTopMenu
 {
-    public const string PlaceholderText = "TODO · 菜单内容待补充";
+    public const string PlaceholderText = "待补充";
 
     public static IReadOnlyList<string> Labels { get; } = Array.AsReadOnly(
         new[] { "文件", "编辑", "操作", "绘制", "数据库", "工具", "设置", "帮助" });
@@ -15,8 +15,8 @@ public static class ShellTopMenu
         new ShellMenuEntry[]
         {
             new ShellMenuCommand("新建排版", "M01", true),
-            new ShellMenuCommand("导入排版进度（axn）", "M02", true),
-            new ShellMenuCommand("导出排版进度（axn）", "M11", true),
+            new ShellMenuCommand("导入排版进度(axn)", "M02", true),
+            new ShellMenuCommand("导出排版进度(axn)", "M11", true),
             new ShellMenuCommand("恢复数据", "M12", true),
             new ShellMenuCommand("导出统计报表", "M11", true),
         });
@@ -47,10 +47,24 @@ public static class ShellTopMenu
             new ShellMenuCommand("导到订单(Ctrl+T)", "M03", true),
         });
 
+    /// <summary>「操作」下拉菜单：与参考软件 A 区「操作」菜单一致；「测试项」置灰不可用。</summary>
+    public static IReadOnlyList<ShellMenuEntry> OperationMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("开始排版", "M08", true),
+            new ShellMenuCommand("停止排版", "M08", true),
+            new ShellMenuCommand("取消排版", "M08", true),
+            new ShellMenuCommand("等宽长条", "M05", true),
+            new ShellMenuCommand("更新皮料", "M07", true),
+            new ShellMenuCommand("发送切割", "M11", true),
+            new ShellMenuCommand("测试项", "M08", true, IsEnabled: false),
+        });
+
     /// <summary>返回指定顶级菜单的内容；未实现的菜单返回 null（渲染为占位）。</summary>
     public static IReadOnlyList<ShellMenuEntry>? EntriesFor(string label) =>
         StringComparer.Ordinal.Equals(label, "文件") ? FileMenu :
         StringComparer.Ordinal.Equals(label, "编辑") ? EditMenu :
+        StringComparer.Ordinal.Equals(label, "操作") ? OperationMenu :
         null;
 }
 
@@ -60,7 +74,8 @@ public abstract record ShellMenuEntry;
 public sealed record ShellMenuCommand(
     string Label,
     string TargetModuleId,
-    bool IsPlaceholderAction) : ShellMenuEntry;
+    bool IsPlaceholderAction,
+    bool IsEnabled = true) : ShellMenuEntry;
 
 public sealed record ShellMenuSeparator : ShellMenuEntry;
 
