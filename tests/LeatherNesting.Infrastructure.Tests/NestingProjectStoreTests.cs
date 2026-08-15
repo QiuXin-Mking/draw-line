@@ -4,6 +4,7 @@ using LeatherNesting.Domain;
 using LeatherNesting.Geometry;
 using LeatherNesting.Geometry.Nesting;
 using LeatherNesting.Infrastructure.Projects;
+using PieceEntity = LeatherNesting.Application.Domain.Piece;
 using Xunit;
 
 namespace LeatherNesting.Infrastructure.Tests;
@@ -31,7 +32,7 @@ public sealed class NestingProjectStoreTests
         var store = new ZipNestingProjectStore();
         var project = new NestingProject(
             ProjectDocument.CreateNew("test-project"),
-            [new Piece("p1", "鞋面", "L", MixedCurveLoop("p1"))],
+            [new PieceEntity("p1", "鞋面", "L", MixedCurveLoop("p1"))],
             [new Material("m1", "头层牛皮", Rect("m1"))],
             [new NestResult([new NestPlacement("p1", new Transform2D(5, 5, 90, false), Rect("p1"))], [], 0.5)]);
 
@@ -69,7 +70,7 @@ public sealed class NestingProjectStoreTests
         var store = new ZipNestingProjectStore();
         var project = new NestingProject(
             ProjectDocument.CreateNew("curves"),
-            [new Piece("p1", "x", "M", MixedCurveLoop("p1"))],
+            [new PieceEntity("p1", "x", "M", MixedCurveLoop("p1"))],
             [],
             []);
 

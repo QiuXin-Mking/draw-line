@@ -1,11 +1,12 @@
 using System.Text.Json;
+using LeatherNesting.Application;
 using LeatherNesting.Application.Domain;
 
 namespace LeatherNesting.Infrastructure.Projects;
 
 /// <summary>Persists a crash-recovery snapshot of a <see cref="NestingProject"/> to a sibling
 /// <c>.autosave</c> file, reusing the zip serialization of <see cref="ZipNestingProjectStore"/>.</summary>
-public sealed class ProjectSnapshotStore
+public sealed class ProjectSnapshotStore : ISnapshotStore
 {
     private readonly ZipNestingProjectStore _store = new();
 

@@ -18,3 +18,10 @@ public interface INestingProjectStore
     Task SaveAsync(string path, NestingProject project, CancellationToken cancellationToken);
     Task<NestingProject> LoadAsync(string path, CancellationToken cancellationToken);
 }
+
+public interface ISnapshotStore
+{
+    Task SaveSnapshotAsync(string projectPath, NestingProject project, CancellationToken cancellationToken);
+    Task<NestingProject?> LoadSnapshotAsync(string projectPath, CancellationToken cancellationToken);
+    void ClearSnapshot(string projectPath);
+}

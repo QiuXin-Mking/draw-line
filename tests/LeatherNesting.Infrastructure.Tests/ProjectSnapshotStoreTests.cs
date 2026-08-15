@@ -3,6 +3,7 @@ using LeatherNesting.Domain;
 using LeatherNesting.Geometry;
 using LeatherNesting.Geometry.Nesting;
 using LeatherNesting.Infrastructure.Projects;
+using PieceEntity = LeatherNesting.Application.Domain.Piece;
 using Xunit;
 
 namespace LeatherNesting.Infrastructure.Tests;
@@ -15,7 +16,7 @@ public sealed class ProjectSnapshotStoreTests
 
     private static NestingProject Project() => new(
         ProjectDocument.CreateNew("snap"),
-        [new Piece("p1", "鞋面", "L", Rect("p1"))],
+        [new PieceEntity("p1", "鞋面", "L", Rect("p1"))],
         [new Material("m1", "牛皮", Rect("m1"))],
         [new NestResult([new NestPlacement("p1", new Transform2D(5, 5, 90, false), Rect("p1"))], [], 0.5)]);
 
