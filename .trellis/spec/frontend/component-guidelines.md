@@ -167,3 +167,16 @@ Assert.Equal("X 5.50 mm · Y -2.50 mm", host.CoordinateText);
 Also note Avalonia 12 constructor signatures changed: `Pointer(int, PointerType, bool)`,
 `PointerEventArgs(RoutedEvent, object, IPointer, Visual?, Point, ulong, PointerPointProperties, KeyModifiers)`,
 and `KeyModifiers` (not `InputModifiers`). Probe via reflection before trusting older examples.
+
+### Avalonia `Key` enum names differ from user-visible labels
+
+Avalonia's `Key` enum uses full names, not the shortcut labels: `Esc` → `Key.Escape`,
+`Enter` → `Key.Return`, `Del` → `Key.Delete`. Function keys and arrows match
+(`F5`, `Up`, `Space`). When modeling a shortcut table, probe `Enum.Parse<Key>` first
+or write it against the enum directly; a bare `"Esc"` will not resolve.
+
+For a single source of truth, keep the mapping contract (`Key` + `KeyModifiers` → command)
+in one static catalog and drive menu labels, routing, and tests from it — as
+`CadShortcutCatalog` does for the AXTNester §8.3 shortcut table. `KeyEventArgs` in
+Avalonia 12 has a parameterless constructor with writable `Key` / `KeyModifiers`,
+so unit tests can raise key events without mounting a window.
