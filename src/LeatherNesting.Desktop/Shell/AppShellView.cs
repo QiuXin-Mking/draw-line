@@ -50,7 +50,7 @@ public sealed class AppShellView : UserControl
 
         VerticalRuler = BuildVerticalRuler();
         HorizontalRuler = BuildHorizontalRuler();
-        CadWorkspace = new CadWorkspaceHost(_viewModel.CadHost, OpenImportModule);
+        CadWorkspace = new CadWorkspaceHost(_viewModel.CadHost, OpenImportModule, _viewModel.ActivateContextCommand);
         CadProperties = new CadPropertyPane(_viewModel.CadHost);
         _content.HorizontalAlignment = HorizontalAlignment.Stretch;
         _content.VerticalAlignment = VerticalAlignment.Stretch;

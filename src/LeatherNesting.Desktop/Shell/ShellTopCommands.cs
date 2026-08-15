@@ -126,6 +126,38 @@ public static class ShellTopMenu
         null;
 }
 
+/// <summary>G 区 CAD 画布右键菜单契约，21 项按参照软件 AXTNester 实测顺序排列（见 02-功能整理.md §8.1）。
+/// 标签照抄原文（含全角括号与「返回/组合模块/组合裁片」术语）；「删除分界」「粘贴」置灰。
+/// 快捷键仅作标签提示，本层不实现全局按键绑定。</summary>
+public static class ShellContextMenu
+{
+    public static IReadOnlyList<ShellMenuEntry> Entries { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("手动排版（F5）", "M03", true),
+            new ShellMenuCommand("添加分界", "M03", true),
+            new ShellMenuCommand("删除分界", "M03", true, IsEnabled: false),
+            new ShellMenuCommand("撤销（Ctrl+Z）", "M03", true),
+            new ShellMenuCommand("返回（Ctrl+Y）", "M03", true),
+            new ShellMenuCommand("取消（Esc）", "M03", true),
+            new ShellMenuCommand("移动", "M03", true),
+            new ShellMenuCommand("旋转", "M03", true),
+            new ShellMenuCommand("剪切（Ctrl+X）", "M03", true),
+            new ShellMenuCommand("复制（Ctrl+C）", "M03", true),
+            new ShellMenuCommand("粘贴（Ctrl+V）", "M03", true, IsEnabled: false),
+            new ShellMenuCommand("全选（Ctrl+A）", "M03", true),
+            new ShellMenuCommand("反选（Shift+A）", "M03", true),
+            new ShellMenuCommand("删除（Del）", "M03", true),
+            new ShellMenuCommand("删除外部", "M03", true),
+            new ShellMenuCommand("清空全部", "M03", true),
+            new ShellMenuCommand("镜像（Ctrl+M）", "M03", true),
+            new ShellMenuCommand("组合模块（Ctrl+G）", "M03", true),
+            new ShellMenuCommand("取消组合（Shift+G）", "M03", true),
+            new ShellMenuCommand("导到订单（Ctrl+T）", "M03", true),
+            new ShellMenuCommand("组合裁片（Ctrl+Shift+G）", "M03", true),
+        });
+}
+
 /// <summary>顶级菜单条目：命令、分隔线或子菜单。</summary>
 public abstract record ShellMenuEntry;
 

@@ -13,13 +13,15 @@ namespace LeatherNesting.Desktop.Shell;
 public sealed class CadWorkspaceHost : Grid
 {
     private readonly CadHostState _state;
+    private readonly Action<ShellMenuCommand> _activateContext;
     private readonly TextBlock _fileName = new() { FontSize = 10, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBlock _status = new() { FontSize = 10, Foreground = AppTheme.TodoAmber, IsHitTestVisible = false };
     private bool _hasRefittedData;
 
-    public CadWorkspaceHost(CadHostState state, Action? requestImport = null)
+    public CadWorkspaceHost(CadHostState state, Action? requestImport = null, Action<ShellMenuCommand>? activateContext = null)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
+        _activateContext = activateContext ?? (_ => { });
         Drawing = new CanvasView
         {
             CanvasBrush = AppTheme.CanvasBlack,
@@ -37,6 +39,7 @@ public sealed class CadWorkspaceHost : Grid
             if (_state.Workbench.CanPreview && _state.Workbench.SelectedLoopId is not null)
                 _state.Workbench.MoveSelected(delta);
         };
+        Drawing.ContextMenu = BuildContextMenu();
         FileOperationButtons = BuildFileRow(requestImport);
         DrawingToolButtons = BuildToolRow();
         Canvas = new Border
@@ -75,6 +78,26 @@ public sealed class CadWorkspaceHost : Grid
     public Border Canvas { get; }
 
     public CanvasView Drawing { get; }
+
+    private ContextMenu BuildContextMenu()
+    {
+        var items = new List<MenuItem>();
+        foreach (var entry in ShellContextMenu.Entries)
+        {
+            if (entry is not ShellMenuCommand command)
+                continue;
+            var item = new MenuItem
+            {
+                Header = command.Label,
+                Foreground = AppTheme.PrimaryText,
+                IsEnabled = command.IsEnabled,
+            };
+            item.Click += (_, _) => _activateContext(command);
+            items.Add(item);
+        }
+
+        return new ContextMenu { ItemsSource = items };
+    }
 
     private IReadOnlyList<Button> BuildFileRow(Action? requestImport)
     {

@@ -101,6 +101,20 @@ public sealed class AppShellViewModel
             ShowTodo(command.Label);
     }
 
+    /// <summary>CAD 右键菜单命令激活入口（接线位）。
+    /// 本任务全部命令统一走占位 TODO（路由 M03 + 状态栏提示），不伪造成功。
+    /// 后续接线映射（替换本方法体即可，无需改动 View 层）：
+    ///   撤销 → Workbench.Undo()
+    ///   返回 → Workbench.Redo()
+    ///   取消 → Workbench.Cancel()（预览中）/ ClearSelection()（选中后）
+    ///   移动 → Workbench.MoveSelected(delta)
+    ///   旋转 → Workbench.RotateSelected(degrees)</summary>
+    public void ActivateContextCommand(ShellMenuCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ActivateMenuCommand(command);
+    }
+
     private void OnWorkspaceSnapshotChanged(object? sender, WorkspaceSnapshot snapshot)
     {
         var target = Modules.FirstOrDefault(module => StringComparer.Ordinal.Equals(module.Id, snapshot.ActiveModuleId));
