@@ -92,3 +92,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 5: CAD 画布右键菜单 21 项
+
+**Date**: 2026-08-15
+**Task**: CAD 画布右键菜单 21 项
+**Branch**: `main`
+
+### Summary
+
+实现 G 区 CAD 画布右键菜单：ShellContextMenu 契约（21 项按 §8.1 顺序，删除分界/粘贴置灰）、CadWorkspaceHost 用 ItemsSource 挂 ContextMenu、AppShellViewModel.ActivateContextCommand 接线位（TODO+预留），新增 CTX-001..005 测试，全量 369 测试通过；沉淀 ItemsSource vs Items.Add 规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7b96252` | (see git log) |
+| `97cfd30` | (see git log) |
+| `b90c8f3` | (see git log) |
+
+### Status
+
+[OK] **Completed**

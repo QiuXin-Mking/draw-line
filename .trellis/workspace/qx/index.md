@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-08-15
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~94 | Active |
+| `journal-1.md` | ~117 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-08-15 | CAD 画布右键菜单 21 项 | `7b96252`, `97cfd30`, `b90c8f3` | `main` |
 | 4 | 2026-08-15 | 文件/编辑菜单下拉与占位框优化 | `2800994`, `47b88ef`, `1be5448` | `main` |
 | 3 | 2026-08-14 | 完成 Desktop UI 色彩统一 | `ac44beb` | `main` |
 | 2 | 2026-08-14 | 完成 CAD 与订单裁片区 1比1复刻 | `74ade97` | `main` |
