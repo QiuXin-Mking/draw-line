@@ -54,6 +54,9 @@ public sealed class CadWorkspaceHost : Grid
         Drawing.ContextMenu = BuildContextMenu();
         Drawing.PointerMoved += OnDrawingPointerMoved;
         Drawing.PointerExited += OnDrawingPointerExited;
+        Drawing.Focusable = true;
+        Shortcuts = new CadShortcutRouter(ExecuteShortcut);
+        Drawing.KeyDown += (_, e) => Shortcuts.HandleKeyDown(e);
         FileOperationButtons = BuildFileRow(requestImport);
         DrawingToolButtons = BuildToolRow();
         Axes = new CadOriginAxes(Drawing) { IsHitTestVisible = false };
@@ -96,6 +99,8 @@ public sealed class CadWorkspaceHost : Grid
 
     public CadOriginAxes Axes { get; }
 
+    public CadShortcutRouter Shortcuts { get; }
+
     /// <summary>Top-left coordinate readout text (empty when the pointer is outside the canvas).</summary>
     public string CoordinateText => _coordinates.Text ?? string.Empty;
 
@@ -133,6 +138,71 @@ public sealed class CadWorkspaceHost : Grid
     private void OnDrawingPointerExited(object? sender, PointerEventArgs e)
     {
         _coordinates.Text = string.Empty;
+    }
+
+    private void ExecuteShortcut(CadShortcutCommand command, string label)
+    {
+        switch (command)
+        {
+            case CadShortcutCommand.Undo:
+                _state.Workbench.Undo();
+                break;
+            case CadShortcutCommand.Redo:
+                _state.Workbench.Redo();
+                break;
+            case CadShortcutCommand.Cancel:
+                if (_state.Workbench.CanCancel)
+                    _state.Workbench.Cancel();
+                else
+                    _state.Workbench.ClearSelection();
+                break;
+            case CadShortcutCommand.RotateLeft:
+                RotateSelected(15);
+                break;
+            case CadShortcutCommand.RotateRight:
+                RotateSelected(-15);
+                break;
+            case CadShortcutCommand.Rotate90:
+                RotateSelected(90);
+                break;
+            case CadShortcutCommand.MoveUp:
+                MoveSelected(0, 10);
+                break;
+            case CadShortcutCommand.MoveDown:
+                MoveSelected(0, -10);
+                break;
+            case CadShortcutCommand.MoveLeft:
+                MoveSelected(-10, 0);
+                break;
+            case CadShortcutCommand.MoveRight:
+                MoveSelected(10, 0);
+                break;
+            default:
+                _state.ReportUnsupported(label);
+                break;
+        }
+    }
+
+    private void RotateSelected(double degrees)
+    {
+        if (_state.Workbench.SelectedLoopId is null)
+        {
+            _state.ReportError("请先选中要旋转的轮廓。");
+            return;
+        }
+
+        _state.Workbench.RotateSelected(degrees);
+    }
+
+    private void MoveSelected(double dx, double dy)
+    {
+        if (_state.Workbench.SelectedLoopId is null)
+        {
+            _state.ReportError("请先选中要移动的轮廓。");
+            return;
+        }
+
+        _state.Workbench.MoveSelected(new Point2D(dx, dy));
     }
 
     private IReadOnlyList<Button> BuildFileRow(Action? requestImport)
