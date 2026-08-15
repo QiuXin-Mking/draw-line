@@ -60,6 +60,18 @@ public sealed class CadOriginAxesTests
 
     [Fact]
     [Trait("Stage", "UI")]
+    [Trait("TestId", "AXIS-005")]
+    public void Axes_are_short_10mm_segments_not_full_canvas_edges()
+    {
+        var canvas = new CanvasView();
+        var axes = new CadOriginAxes(canvas);
+
+        Assert.Equal(10, CadOriginAxes.AxisLengthMm);
+        Assert.Equal(10 * canvas.ViewScale, axes.AxisLengthPx);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
     [Trait("TestId", "AXIS-004")]
     public void Axes_hide_when_the_origin_leaves_the_visible_area()
     {

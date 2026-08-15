@@ -10,6 +10,9 @@ namespace LeatherNesting.Desktop.Views;
 /// visible area. Arrows and +X/+Y labels use the shared material-boundary brush.</summary>
 public sealed class CadOriginAxes : Control
 {
+    /// <summary>Short axis length in model millimetres (X and Y).</summary>
+    public const double AxisLengthMm = 10;
+
     public CadOriginAxes(CanvasView source)
     {
         Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -20,6 +23,9 @@ public sealed class CadOriginAxes : Control
 
     /// <summary>Shared semantic brush used for the axes and labels.</summary>
     public IBrush AxisBrush => AppTheme.MaterialBoundary;
+
+    /// <summary>Axis endpoint pixel offset along the positive direction, in model mm.</summary>
+    public double AxisLengthPx => AxisLengthMm * Source.ViewScale;
 
     /// <summary>Pixel position of the model origin (0,0) within this control.</summary>
     public Point OriginPixel => new(
@@ -38,15 +44,16 @@ public sealed class CadOriginAxes : Control
 
         var origin = OriginPixel;
         var pen = new Pen(AxisBrush, 1.5);
+        var length = AxisLengthPx;
 
-        // X axis: horizontal from the origin toward the right edge, arrow at the end.
-        var xEnd = new Point(Bounds.Width, origin.Y);
+        // X axis: short horizontal segment from the origin toward +X, arrow at the end.
+        var xEnd = new Point(origin.X + length, origin.Y);
         context.DrawLine(pen, origin, xEnd);
         DrawArrowX(context, pen, xEnd);
         DrawText(context, "+X", xEnd.X - 20, origin.Y - 16);
 
-        // Y axis: vertical from the origin toward the top edge, arrow at the end.
-        var yEnd = new Point(origin.X, 0);
+        // Y axis: short vertical segment from the origin toward +Y, arrow at the end.
+        var yEnd = new Point(origin.X, origin.Y - length);
         context.DrawLine(pen, origin, yEnd);
         DrawArrowY(context, pen, yEnd);
         DrawText(context, "+Y", origin.X + 6, yEnd.Y + 2);
