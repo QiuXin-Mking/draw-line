@@ -10,7 +10,7 @@
 |---|---|---|
 | `IDxfReader` | Application | Inspect DXF entities (inventory, no geometry) |
 | `AsciiDxfReader` | Infrastructure | ASCII DXF entity inventory + diagnostics |
-| `AsciiDxfGeometryReader` | Infrastructure | Read closed `LWPOLYLINE` back into `Loop2D` |
+| `AsciiDxfGeometryReader` | Infrastructure | Read closed `LWPOLYLINE` (with bulge) and `ARC` back into `Loop2D` |
 | `IDxfWriter` | Infrastructure | Write closed contours (Stage 2 round-trip) |
 | `AsciiDxfWriter` | Infrastructure | ASCII `LWPOLYLINE` writer |
 | `INestingDxfWriter` | Application | Write a nesting result as DXF |
@@ -63,6 +63,26 @@ The DXF carries only placed geometry + annotations. `unplaced` belongs to the JS
 ### 5. Round-trip verification pattern
 
 Export → `AsciiDxfGeometryReader.ReadAsync` → assert contour bbox/area match the source `PlacedLoop`. This catches layer, coordinate, and closing-vertex regressions.
+
+---
+
+## Arc topology (bulge + ARC)
+
+`AsciiDxfGeometryReader` preserves arcs instead of flattening them to chords:
+
+- **`LWPOLYLINE` bulge** (group `42`): vertex i's bulge describes the arc from vertex i to vertex i+1. `bulge = tan(θ/4)`, θ the signed sweep angle (CCW positive).
+- **Independent `ARC`** (groups `10/20` centre, `40` radius, `50` start angle, `51` end angle) → `CircularArc2D`.
+
+**bulge → `CircularArc2D` formula** (chord endpoints `P1`,`P2`, bulge `b`):
+
+```
+θ = 4·atan(b)
+radius = |P1P2| · (1 + b²) / (4·|b|)
+centre = chord midpoint + perpendicular · (|P1P2| · (1 − b²) / (4·b))
+startAngle = atan2(P1 − centre)
+```
+
+bulge = 0 segments stay `LineSegment2D`; a loop's `Curves` mix line and arc segments. A `LWPOLYLINE` with fewer than 3 vertices, or a non-closed polyline, is skipped (not a piece outline).
 
 ---
 
