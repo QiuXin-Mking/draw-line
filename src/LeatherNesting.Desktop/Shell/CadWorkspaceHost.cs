@@ -1,11 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Desktop.Modules.CadCanvas;
 using LeatherNesting.Desktop.ViewModels;
 using LeatherNesting.Desktop.Views;
+using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Desktop.Shell;
 
@@ -16,6 +18,16 @@ public sealed class CadWorkspaceHost : Grid
     private readonly Action<ShellMenuCommand> _activateContext;
     private readonly TextBlock _fileName = new() { FontSize = 10, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBlock _status = new() { FontSize = 10, Foreground = AppTheme.TodoAmber, IsHitTestVisible = false };
+    private readonly TextBlock _coordinates = new()
+    {
+        Foreground = AppTheme.CadCoordinateText,
+        FontSize = 11,
+        Margin = new Thickness(8, 7),
+        VerticalAlignment = VerticalAlignment.Top,
+        HorizontalAlignment = HorizontalAlignment.Left,
+        IsHitTestVisible = false,
+        Text = string.Empty,
+    };
     private bool _hasRefittedData;
 
     public CadWorkspaceHost(CadHostState state, Action? requestImport = null, Action<ShellMenuCommand>? activateContext = null)
@@ -40,12 +52,14 @@ public sealed class CadWorkspaceHost : Grid
                 _state.Workbench.MoveSelected(delta);
         };
         Drawing.ContextMenu = BuildContextMenu();
+        Drawing.PointerMoved += OnDrawingPointerMoved;
+        Drawing.PointerExited += OnDrawingPointerExited;
         FileOperationButtons = BuildFileRow(requestImport);
         DrawingToolButtons = BuildToolRow();
         Canvas = new Border
         {
             Background = AppTheme.CanvasBlack,
-            Child = new Grid { Children = { Drawing, BuildAxes(), _status } },
+            Child = new Grid { Children = { Drawing, BuildAxes(), _coordinates, _status } },
         };
         _status.Margin = new Thickness(6);
         _status.VerticalAlignment = VerticalAlignment.Bottom;
@@ -79,6 +93,9 @@ public sealed class CadWorkspaceHost : Grid
 
     public CanvasView Drawing { get; }
 
+    /// <summary>Top-left coordinate readout text (empty when the pointer is outside the canvas).</summary>
+    public string CoordinateText => _coordinates.Text ?? string.Empty;
+
     private ContextMenu BuildContextMenu()
     {
         var items = new List<MenuItem>();
@@ -97,6 +114,22 @@ public sealed class CadWorkspaceHost : Grid
         }
 
         return new ContextMenu { ItemsSource = items };
+    }
+
+    /// <summary>Updates the coordinate readout for a model-space pointer position.</summary>
+    public void UpdateCoordinates(Point2D model)
+    {
+        _coordinates.Text = $"X {model.X:F2} mm · Y {model.Y:F2} mm";
+    }
+
+    private void OnDrawingPointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdateCoordinates(Drawing.ToModel(e.GetPosition(Drawing)));
+    }
+
+    private void OnDrawingPointerExited(object? sender, PointerEventArgs e)
+    {
+        _coordinates.Text = string.Empty;
     }
 
     private IReadOnlyList<Button> BuildFileRow(Action? requestImport)

@@ -19,6 +19,15 @@ public sealed class CanvasView : Control
     private Point _pressPixel;
     private string? _pressedLoopId;
 
+    /// <summary>Current zoom factor in pixels per millimetre.</summary>
+    public double ViewScale => _scale;
+
+    /// <summary>Model-space coordinate (mm) at the canvas pixel origin (0,0). Y-up.</summary>
+    public Point2D ViewOriginModel => new(-_offset.X / _scale, _offset.Y / _scale);
+
+    /// <summary>Raised whenever the view (zoom or offset) changes, so rulers and overlays can repaint.</summary>
+    public event EventHandler? ViewChanged;
+
     /// <summary>Loop currently highlighted (selected) on the canvas.</summary>
     public string? SelectedLoopId { get; set; }
 
@@ -44,6 +53,8 @@ public sealed class CanvasView : Control
         _loops = loops ?? [];
         _fitPending = refit;
         InvalidateVisual();
+        if (refit)
+            ViewChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void Refit()
@@ -99,6 +110,7 @@ public sealed class CanvasView : Control
         _scale *= factor;
         _offset = new Point(cursor.X - mmX * _scale, cursor.Y + mmY * _scale);
         InvalidateVisual();
+        ViewChanged?.Invoke(this, EventArgs.Empty);
         e.Handled = true;
     }
 
@@ -129,6 +141,7 @@ public sealed class CanvasView : Control
         _offset = new Point(_offset.X + (position.X - _lastPointer.X), _offset.Y + (position.Y - _lastPointer.Y));
         _lastPointer = position;
         InvalidateVisual();
+        ViewChanged?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -159,6 +172,7 @@ public sealed class CanvasView : Control
         {
             _scale = 10.0;
             _offset = new Point(0, 0);
+            ViewChanged?.Invoke(this, EventArgs.Empty);
             return;
         }
 
@@ -167,6 +181,7 @@ public sealed class CanvasView : Control
         var cx = (minX + maxX) / 2;
         var cy = (minY + maxY) / 2;
         _offset = new Point(Bounds.Width / 2 - cx * _scale, Bounds.Height / 2 + cy * _scale);
+        ViewChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private (double MinX, double MinY, double MaxX, double MaxY) ComputeBounds()

@@ -45,6 +45,9 @@ public static class AppTheme
 
     // Canvas geometry roles must never be reused as application chrome.
     public static IBrush MaterialBoundary { get; } = Brush(0xFF, 0x00, 0x00);
+
+    /// <summary>CAD 画布左上角坐标提示文字（红色，随鼠标移动更新）。与 MaterialBoundary 同值但角色独立。</summary>
+    public static IBrush CadCoordinateText { get; } = Brush(0xFF, 0x00, 0x00);
     public static IBrush GeometryOuterContour { get; } = Brush(0xFF, 0xFF, 0xFF);
     public static IBrush GeometryInternalLine { get; } = Brush(0x32, 0xCD, 0x32);
     public static IBrush GeometrySelectionFill { get; } = Brush(0x12, 0x68, 0x70, 0x99);

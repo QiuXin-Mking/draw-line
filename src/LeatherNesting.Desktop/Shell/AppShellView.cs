@@ -5,6 +5,7 @@ using Avalonia.Media;
 using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Desktop.Modules.Pieces;
+using LeatherNesting.Desktop.Views;
 using LeatherNesting.Desktop.Workspace;
 
 namespace LeatherNesting.Desktop.Shell;
@@ -48,10 +49,10 @@ public sealed class AppShellView : UserControl
             LayoutCandidateHost, OutputInformationHost,
         ];
 
-        VerticalRuler = BuildVerticalRuler();
-        HorizontalRuler = BuildHorizontalRuler();
         CadWorkspace = new CadWorkspaceHost(_viewModel.CadHost, OpenImportModule, _viewModel.ActivateContextCommand);
         CadProperties = new CadPropertyPane(_viewModel.CadHost);
+        VerticalRuler = BuildVerticalRuler();
+        HorizontalRuler = BuildHorizontalRuler();
         _content.HorizontalAlignment = HorizontalAlignment.Stretch;
         _content.VerticalAlignment = VerticalAlignment.Stretch;
         _content.Margin = new Thickness(70, 38);
@@ -104,8 +105,8 @@ public sealed class AppShellView : UserControl
     public Border CanvasSurface { get; }
     public CadWorkspaceHost CadWorkspace { get; }
     public CadPropertyPane CadProperties { get; }
-    public Border VerticalRuler { get; }
-    public Border HorizontalRuler { get; }
+    public CadRuler VerticalRuler { get; }
+    public CadRuler HorizontalRuler { get; }
     public Border StatusBar { get; }
     public TextBlock StatusDemoText { get; }
 
@@ -232,31 +233,14 @@ public sealed class AppShellView : UserControl
         _statusVersionText.Text = "LeatherNesting 0.1 · 2026-08-13";
     }
 
-    private static Border BuildVerticalRuler() => new()
+    private CadRuler BuildVerticalRuler() => new(CadWorkspace.Drawing, CadRulerOrientation.Vertical)
     {
         Width = 22,
-        Background = AppTheme.RulerChrome,
-        Child = new TextBlock
-        {
-            Text = "0\n\n100\n\n200\n\n300\n\n400\n\n500",
-            Foreground = AppTheme.RulerTick,
-            FontSize = 9,
-            TextAlignment = TextAlignment.Center,
-        },
     };
 
-    private static Border BuildHorizontalRuler() => new()
+    private CadRuler BuildHorizontalRuler() => new(CadWorkspace.Drawing, CadRulerOrientation.Horizontal)
     {
         Height = 20,
-        Background = AppTheme.RulerChrome,
-        Child = new TextBlock
-        {
-            Text = "0        100        200        300        400        500        600        700        800",
-            Foreground = AppTheme.RulerTick,
-            FontSize = 9,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            VerticalAlignment = VerticalAlignment.Center,
-        },
     };
 
     private static Control BuildOutputDemo() => CompactText(

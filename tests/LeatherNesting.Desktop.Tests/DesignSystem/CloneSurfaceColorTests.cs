@@ -35,8 +35,10 @@ public sealed class CloneSurfaceColorTests
             Assert.Same(AppTheme.ClassicBorderNeutral, host.BorderBrush);
         });
         Assert.Same(AppTheme.CanvasBlack, shell.CanvasSurface.Background);
-        Assert.Same(AppTheme.RulerChrome, shell.VerticalRuler.Background);
-        Assert.Same(AppTheme.RulerChrome, shell.HorizontalRuler.Background);
+        Assert.Same(AppTheme.RulerChrome, shell.VerticalRuler.Surface);
+        Assert.Same(AppTheme.RulerTick, shell.VerticalRuler.TickBrush);
+        Assert.Same(AppTheme.RulerChrome, shell.HorizontalRuler.Surface);
+        Assert.Same(AppTheme.RulerTick, shell.HorizontalRuler.TickBrush);
         Assert.Same(AppTheme.StatusSurface, shell.StatusBar.Background);
 
         var statusRow = Assert.IsType<Grid>(shell.StatusBar.Child);
