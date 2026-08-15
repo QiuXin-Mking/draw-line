@@ -143,3 +143,27 @@ menu.Items.Add(new MenuItem { Header = "…" });
 
 Tests must assert item label/order and disabled states off the source contract
 plus the host's materialized `MenuItems` / `ContextMenu`.
+
+### Headless tests: `PointerEventArgs.GetPosition` returns the origin
+
+In Avalonia headless tests (no visual root mounted), `PointerEventArgs.GetPosition`
+returns `(0,0)` regardless of the position passed to the constructor, because it
+resolves through `RootVisual.TranslatePoint`, which is a no-op without a mounted
+root. Do not assert real coordinates by constructing a `PointerMovedEventArgs` and
+reading `GetPosition`.
+
+Correct pattern: extract the coordinate formatting into a testable seam on the
+host (e.g. `UpdateCoordinates(Point2D)`) and assert that seam directly; keep the
+pointer handler as a thin `GetPosition → seam` bridge. Assert pointer-exit
+clearing by raising the real routed event with the matching `RoutedEvent`
+(`InputElement.PointerExitedEvent`, not `PointerMovedEvent`).
+
+```csharp
+// Assert format via the seam, not via a raised pointer event.
+host.UpdateCoordinates(new Point2D(5.5, -2.5));
+Assert.Equal("X 5.50 mm · Y -2.50 mm", host.CoordinateText);
+```
+
+Also note Avalonia 12 constructor signatures changed: `Pointer(int, PointerType, bool)`,
+`PointerEventArgs(RoutedEvent, object, IPointer, Visual?, Point, ulong, PointerPointProperties, KeyModifiers)`,
+and `KeyModifiers` (not `InputModifiers`). Probe via reflection before trusting older examples.
