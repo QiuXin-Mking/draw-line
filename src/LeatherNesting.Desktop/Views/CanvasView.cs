@@ -9,10 +9,6 @@ namespace LeatherNesting.Desktop.Views;
 /// <summary>CAD canvas: draws loops (mm, Y-up) into pixels (Y-down), with zoom/pan and click/drag selection.</summary>
 public sealed class CanvasView : Control
 {
-    private static readonly IPen OuterPen = new Pen(Brushes.Navy, 1.5);
-    private static readonly IPen HolePen = new Pen(Brushes.OrangeRed, 1.5);
-    private static readonly IPen SelectedPen = new Pen(Brushes.DodgerBlue, 3);
-
     private IReadOnlyList<Loop2D> _loops = [];
     private double _scale = 10.0; // pixels per mm
     private Point _offset;
@@ -21,10 +17,20 @@ public sealed class CanvasView : Control
     private Size _lastSize;
     private Point2D _pressModel = Point2D.Origin;
     private Point _pressPixel;
-    private bool _pressedOnPiece;
+    private string? _pressedLoopId;
 
     /// <summary>Loop currently highlighted (selected) on the canvas.</summary>
     public string? SelectedLoopId { get; set; }
+
+    public IReadOnlyList<Loop2D> Loops => _loops;
+
+    public IBrush CanvasBrush { get; set; } = Brushes.White;
+
+    public IPen OuterContourPen { get; set; } = new Pen(Brushes.Navy, 1.5);
+
+    public IPen InternalContourPen { get; set; } = new Pen(Brushes.OrangeRed, 1.5);
+
+    public IPen SelectionPen { get; set; } = new Pen(Brushes.DodgerBlue, 3);
 
     /// <summary>Invoked on a click (no drag) with the model-space point.</summary>
     public Action<Point2D>? OnClick { get; set; }
@@ -40,12 +46,18 @@ public sealed class CanvasView : Control
         InvalidateVisual();
     }
 
+    public void Refit()
+    {
+        _fitPending = true;
+        InvalidateVisual();
+    }
+
     /// <summary>Converts a pixel point to model-space millimetres.</summary>
     public Point2D ToModel(Point pixel) => new((pixel.X - _offset.X) / _scale, (_offset.Y - pixel.Y) / _scale);
 
     public override void Render(DrawingContext context)
     {
-        context.FillRectangle(Brushes.White, new Rect(Bounds.Size));
+        context.FillRectangle(CanvasBrush, new Rect(Bounds.Size));
 
         if (_loops.Count == 0)
             return;
@@ -58,7 +70,7 @@ public sealed class CanvasView : Control
 
         foreach (var loop in _loops)
         {
-            var pen = loop.StableId == SelectedLoopId ? SelectedPen : loop.Role == LoopRole.Outer ? OuterPen : HolePen;
+            var pen = loop.StableId == SelectedLoopId ? SelectionPen : loop.Role == LoopRole.Outer ? OuterContourPen : InternalContourPen;
             foreach (var segment in FlattenLoop(loop))
                 context.DrawLine(pen, ToPixel(segment.Start), ToPixel(segment.End));
         }
@@ -87,15 +99,20 @@ public sealed class CanvasView : Control
         _scale *= factor;
         _offset = new Point(cursor.X - mmX * _scale, cursor.Y + mmY * _scale);
         InvalidateVisual();
+        e.Handled = true;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
         var position = e.GetPosition(this);
         _lastPointer = position;
         _pressPixel = position;
         _pressModel = ToModel(position);
-        _pressedOnPiece = _loops.Any(l => l.ContainsPoint(_pressModel));
+        _pressedLoopId = _loops.LastOrDefault(loop => loop.ContainsPoint(_pressModel))?.StableId;
+        e.Pointer.Capture(this);
         e.Handled = true;
     }
 
@@ -104,7 +121,7 @@ public sealed class CanvasView : Control
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
         var position = e.GetPosition(this);
-        if (_pressedOnPiece)
+        if (_pressedLoopId is not null)
         {
             _lastPointer = position;
             return; // dragging a piece: resolve on release
@@ -116,14 +133,19 @@ public sealed class CanvasView : Control
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (!_pressedOnPiece)
-            return;
-        var pixelDelta = e.GetPosition(this) - _pressPixel;
-        if (pixelDelta.X * pixelDelta.X + pixelDelta.Y * pixelDelta.Y < 16)
-            OnClick?.Invoke(_pressModel);
-        else
-            OnDrag?.Invoke(new Point2D(pixelDelta.X / _scale, -pixelDelta.Y / _scale));
-        _pressedOnPiece = false;
+        e.Pointer.Capture(null);
+        if (_pressedLoopId is not null)
+        {
+            var pixelDelta = e.GetPosition(this) - _pressPixel;
+            if (pixelDelta.X * pixelDelta.X + pixelDelta.Y * pixelDelta.Y < 16)
+                OnClick?.Invoke(_pressModel);
+            else if (_pressedLoopId == SelectedLoopId)
+                OnDrag?.Invoke(new Point2D(pixelDelta.X / _scale, -pixelDelta.Y / _scale));
+            else
+                OnClick?.Invoke(_pressModel);
+        }
+        _pressedLoopId = null;
+        e.Handled = true;
     }
 
     private Point ToPixel(Point2D p) => new(_offset.X + p.X * _scale, _offset.Y - p.Y * _scale);
@@ -152,13 +174,13 @@ public sealed class CanvasView : Control
         var minX = double.MaxValue; var minY = double.MaxValue;
         var maxX = double.MinValue; var maxY = double.MinValue;
         foreach (var loop in _loops)
-        foreach (var segment in FlattenLoop(loop))
-        {
-            minX = Math.Min(minX, Math.Min(segment.Start.X, segment.End.X));
-            minY = Math.Min(minY, Math.Min(segment.Start.Y, segment.End.Y));
-            maxX = Math.Max(maxX, Math.Max(segment.Start.X, segment.End.X));
-            maxY = Math.Max(maxY, Math.Max(segment.Start.Y, segment.End.Y));
-        }
+            foreach (var segment in FlattenLoop(loop))
+            {
+                minX = Math.Min(minX, Math.Min(segment.Start.X, segment.End.X));
+                minY = Math.Min(minY, Math.Min(segment.Start.Y, segment.End.Y));
+                maxX = Math.Max(maxX, Math.Max(segment.Start.X, segment.End.X));
+                maxY = Math.Max(maxY, Math.Max(segment.Start.Y, segment.End.Y));
+            }
         return (minX, minY, maxX, maxY);
     }
 

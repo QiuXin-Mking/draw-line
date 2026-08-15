@@ -30,10 +30,10 @@
 - Produces: `event EventHandler? Changed`, `void ClearSelection()`, and reliable state notifications from all mutating methods.
 - Preserves: existing public preview, transform, commit, cancel, undo, and redo methods.
 
-- [ ] Add failing tests proving `Changed` fires after load/select/preview/commit/cancel/undo/redo, `LoadLoops` clears selection, and invalid/no-op transactions do not report a successful state.
-- [ ] Run `dotnet test tests/LeatherNesting.Desktop.Tests/LeatherNesting.Desktop.Tests.csproj --no-restore --filter FullyQualifiedName~CadWorkbenchViewModelTests` and confirm the new tests fail for missing notification/selection contracts.
-- [ ] Add a private `NotifyChanged()` and call it once per completed public transition; add `ClearSelection()` and reset selection in `LoadLoops`.
-- [ ] Make `Commit`, `Undo`, and `Redo` consume `CadCommandResult.Success` before changing state; surface result diagnostics through `ProblemMessages`.
+- [x] Add failing tests proving `Changed` fires after load/select/preview/commit/cancel/undo/redo, `LoadLoops` clears selection, and invalid/no-op transactions do not report a successful state.
+- [x] Run `dotnet test tests/LeatherNesting.Desktop.Tests/LeatherNesting.Desktop.Tests.csproj --no-restore --filter FullyQualifiedName~CadWorkbenchViewModelTests` and confirm the new tests fail for missing notification/selection contracts.
+- [x] Add a private `NotifyChanged()` and call it once per completed public transition; add `ClearSelection()` and reset selection in `LoadLoops`.
+- [x] Make `Commit`, `Undo`, and `Redo` consume `CadCommandResult.Success` before changing state; surface result diagnostics through `ProblemMessages`.
 
 Implementation shape:
 
@@ -56,7 +56,7 @@ private void Complete(CadCommandResult result, WorkbenchState successState)
 }
 ```
 
-- [ ] Re-run the focused tests and require all `CadWorkbenchViewModelTests` to pass.
+- [x] Re-run the focused tests and require all `CadWorkbenchViewModelTests` to pass.
 
 ### Task 2: Make `CadHostState` the single CAD session owner
 
@@ -68,10 +68,10 @@ private void Complete(CadCommandResult result, WorkbenchState successState)
 - Produces: `CadWorkbenchViewModel Workbench { get; }`, `Loops` as a projection of `Workbench.CurrentLoops`, and `void ReportError(string message)`.
 - Consumes: Task 1 `Changed` event and `ClearSelection()` behavior.
 
-- [ ] Add failing tests proving confirmed import loads `Workbench`, `Loops` and `Workbench.CurrentLoops` reference the same projected collection, workbench changes raise host `Changed`, and `Clear()` resets geometry/selection/status.
-- [ ] Run the `CadHostEvidenceTests` filter and confirm failures show the current duplicate `_loops` storage.
-- [ ] Replace `_loops` ownership with one private Workbench instance; subscribe once to its `Changed` event and forward a host refresh.
-- [ ] In `LoadConfirmedImport`, copy the external list once, load it into Workbench, then derive file/status fields; suppress duplicate change notifications if needed so one user transition produces one host refresh.
+- [x] Add failing tests proving confirmed import loads `Workbench`, `Loops` and `Workbench.CurrentLoops` reference the same projected collection, workbench changes raise host `Changed`, and `Clear()` resets geometry/selection/status.
+- [x] Run the `CadHostEvidenceTests` filter and confirm failures show the current duplicate `_loops` storage.
+- [x] Replace `_loops` ownership with one private Workbench instance; subscribe once to its `Changed` event and forward a host refresh.
+- [x] In `LoadConfirmedImport`, copy the external list once, load it into Workbench, then derive file/status fields; suppress duplicate change notifications if needed so one user transition produces one host refresh.
 
 Implementation shape:
 
@@ -98,7 +98,7 @@ public void ReportError(string message)
 }
 ```
 
-- [ ] Re-run focused host tests and require them to pass.
+- [x] Re-run focused host tests and require them to pass.
 
 ### Task 3: Replace the read-only evidence canvas with the interactive shared canvas
 
@@ -112,11 +112,11 @@ public void ReportError(string message)
 - Produces: `void CanvasView.Refit()`, configurable canvas/pen properties, and an exposed `CanvasView Drawing` contract on `CadWorkspaceHost` for UI assertions.
 - Consumes: `CadHostState.Workbench.SelectPiece`, `MoveSelected`, `SelectedLoopId`, and `CurrentLoops`.
 
-- [ ] Add failing UI contract tests asserting the shell canvas contains `CanvasView`, range zoom requests refit, imported loops are supplied to it, click selection updates highlight, and dragging a selected loop creates a preview.
-- [ ] Run the focused shell tests and confirm they fail because `CadEvidenceCanvas` is read-only.
-- [ ] Add `CanvasView.Refit()` that sets `_fitPending = true` and invalidates rendering without changing loops.
-- [ ] Replace `_drawing` with `CanvasView`; wire `OnClick` to selection and `OnDrag` to preview movement; refresh `SelectedLoopId` and call `SetData(..., refit: false)` on host change.
-- [ ] Wire “范围缩放” to `CanvasView.Refit`; wire “选择” to an honest selection-mode status; set draw polyline, rectangle, and delete buttons disabled with TODO tooltips.
+- [x] Add failing UI contract tests asserting the shell canvas contains `CanvasView`, range zoom requests refit, imported loops are supplied to it, click selection updates highlight, and dragging a selected loop creates a preview.
+- [x] Run the focused shell tests and confirm they fail because `CadEvidenceCanvas` is read-only.
+- [x] Add `CanvasView.Refit()` that sets `_fitPending = true` and invalidates rendering without changing loops.
+- [x] Replace `_drawing` with `CanvasView`; wire `OnClick` to selection and `OnDrag` to preview movement; refresh `SelectedLoopId` and call `SetData(..., refit: false)` on host change.
+- [x] Wire “范围缩放” to `CanvasView.Refit`; wire “选择” to an honest selection-mode status; set draw polyline, rectangle, and delete buttons disabled with TODO tooltips.
 
 Implementation shape:
 
@@ -143,7 +143,7 @@ Drawing.OnClick = point => state.Workbench.SelectPiece(point);
 Drawing.OnDrag = delta => state.Workbench.MoveSelected(delta);
 ```
 
-- [ ] Re-run the focused shell tests and require them to pass.
+- [x] Re-run the focused shell tests and require them to pass.
 
 ### Task 4: Connect the core property and transaction controls
 
@@ -156,11 +156,11 @@ Drawing.OnDrag = delta => state.Workbench.MoveSelected(delta);
 - Consumes: `CadHostState.Workbench` and its `Changed` event.
 - Produces: connected controls for close contour, offset direction/distance, rotate +15°, session commit, cancel, undo, redo, and clear selection; exposes named controls or a stable lookup for tests.
 
-- [ ] Add failing tests that load deterministic geometry and assert each supported button changes tool/session/geometry state; assert invalid offset text preserves geometry and emits a diagnostic; assert unsupported buttons are disabled and visibly marked TODO.
-- [ ] Run the focused `CadHostEvidenceTests` and confirm the current `ReportUnsupported` wiring fails the behavior assertions.
-- [ ] Add a top “CAD 会话” group with state/diagnostic text and buttons whose enabled state is recomputed on Workbench `Changed`.
-- [ ] Bind close contour to `PreviewClose`; parse offset with invariant/current culture fallback, reject non-finite/zero values, then call `PreviewOffset(distance, selectedDirection)`; bind rotate, commit, cancel, undo, redo, and clear selection directly to Workbench.
-- [ ] Convert every unimplemented action button to disabled TODO and disable orphan input controls that cannot affect a supported command.
+- [x] Add failing tests that load deterministic geometry and assert each supported button changes tool/session/geometry state; assert invalid offset text preserves geometry and emits a diagnostic; assert unsupported buttons are disabled and visibly marked TODO.
+- [x] Run the focused `CadHostEvidenceTests` and confirm the current `ReportUnsupported` wiring fails the behavior assertions.
+- [x] Add a top “CAD 会话” group with state/diagnostic text and buttons whose enabled state is recomputed on Workbench `Changed`.
+- [x] Bind close contour to `PreviewClose`; parse offset with invariant/current culture fallback, reject non-finite/zero values, then call `PreviewOffset(distance, selectedDirection)`; bind rotate, commit, cancel, undo, redo, and clear selection directly to Workbench.
+- [x] Convert every unimplemented action button to disabled TODO and disable orphan input controls that cannot affect a supported command.
 
 Implementation shape:
 
@@ -190,7 +190,7 @@ private void RefreshActions(CadHostState state)
 }
 ```
 
-- [ ] Re-run the focused host and color-contract tests and require them to pass.
+- [x] Re-run the focused host and color-contract tests and require them to pass.
 
 ### Task 5: Prove M02-to-M03 shared-session integration
 
@@ -205,10 +205,10 @@ private void RefreshActions(CadHostState state)
 - Consumes: the single `CadHostState` shared by `ImportCoordinator` and `AppShellViewModel`.
 - Produces: confirmed import -> visible/editable main CAD session with no secondary geometry copy.
 
-- [ ] Add an integration test that inspects and confirms deterministic DXF geometry, observes the shell return to M03, selects the imported loop in the persistent canvas, previews an edit, commits it, and undoes it through the same host state.
-- [ ] Run the integration-focused tests and confirm any remaining routing/state-copy failure is reproducible.
-- [ ] Make the minimum composition or event-order correction necessary; do not expose the full hidden M03 page or create another Workbench.
-- [ ] Replace obsolete tests that require “unsupported select” or a read-only evidence canvas with assertions for honest disabled tools and real core behavior.
+- [x] Add an integration test that inspects and confirms deterministic DXF geometry, observes the shell return to M03, selects the imported loop in the persistent canvas, previews an edit, commits it, and undoes it through the same host state.
+- [x] Run the integration-focused tests and confirm any remaining routing/state-copy failure is reproducible.
+- [x] Make the minimum composition or event-order correction necessary; no composition correction was required after the shared host session was connected.
+- [x] Replace obsolete tests that require “unsupported select” or a read-only evidence canvas with assertions for honest disabled tools and real core behavior.
 
 Integration assertion shape:
 
@@ -223,7 +223,7 @@ cad.Workbench.Undo();
 Assert.Equal(originalSignature, GeometrySignature(cad.Loops));
 ```
 
-- [ ] Re-run all Desktop tests and require zero failures.
+- [x] Re-run all Desktop tests and require zero failures (246 passed, 0 failed, 0 skipped after final review fixes).
 
 ### Task 6: Native interaction verification and quality gate
 
@@ -235,8 +235,10 @@ Assert.Equal(originalSignature, GeometrySignature(cad.Loops));
 **Interfaces:**
 - Produces: auditable native evidence for every acceptance criterion.
 
-- [ ] Run `dotnet test tests/LeatherNesting.Desktop.Tests/LeatherNesting.Desktop.Tests.csproj --no-restore` and record total/pass/fail counts.
-- [ ] Run `dotnet build LeatherNesting.sln --no-restore`, task-scoped `dotnet format --verify-no-changes`, and `git diff --check`; record exact outputs.
+- [x] Run `dotnet test tests/LeatherNesting.Desktop.Tests/LeatherNesting.Desktop.Tests.csproj --no-restore` and record total/pass/fail counts.
+- [x] Run `dotnet build LeatherNesting.sln --no-restore`, task-scoped `dotnet format --verify-no-changes`, and `git diff --check`; record exact outputs.
 - [ ] Launch the native app at a 1366×768 client area and verify import confirmation, full view, wheel zoom, blank pan, click selection, drag preview, close/offset preview, session commit/cancel, undo/redo, and disabled TODO controls.
-- [ ] Capture the final native screenshot and write a ledger mapping R1-R10 and every acceptance criterion to an automated test or manual observation.
-- [ ] Review the diff for accidental DXF, project persistence, `05-图片/`, or unrelated task changes before handing off to `trellis-check`.
+- [x] Capture the final native screenshot and write a ledger mapping R1-R10 and every acceptance criterion to an automated test or manual observation.
+- [x] Review the diff for accidental DXF, project persistence, `05-图片/`, or unrelated task changes before handing off to `trellis-check`.
+
+Native note: launch, viewport, screenshot, and layout visibility passed. Full mouse-driven import/edit replay remains unchecked because macOS denied Accessibility automation (`osascript` error `-1719`); the exact limitation and equivalent automated interaction evidence are recorded in `verification-ledger.md`.

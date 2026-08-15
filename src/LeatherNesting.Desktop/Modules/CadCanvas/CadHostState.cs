@@ -1,4 +1,5 @@
 using LeatherNesting.Desktop.DesignSystem;
+using LeatherNesting.Desktop.ViewModels;
 using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Desktop.Modules.CadCanvas;
@@ -6,11 +7,18 @@ namespace LeatherNesting.Desktop.Modules.CadCanvas;
 /// <summary>Shared projection consumed by the fixed CAD host and the confirmed M02 import flow.</summary>
 public sealed class CadHostState
 {
-    private IReadOnlyList<Loop2D> _loops = [];
+    private bool _suppressWorkbenchRefresh;
+
+    public CadHostState()
+    {
+        Workbench.Changed += (_, _) => RefreshFromWorkbench();
+    }
+
+    public CadWorkbenchViewModel Workbench { get; } = new();
 
     public string FileName { get; private set; } = "未打开文件";
 
-    public IReadOnlyList<Loop2D> Loops => _loops;
+    public IReadOnlyList<Loop2D> Loops => Workbench.CurrentLoops ?? [];
 
     public bool IsDemoGeometry { get; private set; }
 
@@ -22,12 +30,28 @@ public sealed class CadHostState
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(loops);
+        var snapshot = loops.ToArray();
+        _suppressWorkbenchRefresh = true;
+        try
+        {
+            Workbench.LoadLoops(snapshot);
+        }
+        finally
+        {
+            _suppressWorkbenchRefresh = false;
+        }
         FileName = Path.GetFileName(path);
-        _loops = loops.ToArray();
         IsDemoGeometry = false;
-        StatusMessage = _loops.Count == 0
+        StatusMessage = snapshot.Length == 0
             ? "DXF 已确认，但没有可显示的闭合轮廓。"
-            : $"已载入 {FileName} · {_loops.Count} 个闭合轮廓";
+            : $"已载入 {FileName} · {snapshot.Length} 个闭合轮廓";
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void ReportError(string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        StatusMessage = message;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -40,10 +64,37 @@ public sealed class CadHostState
 
     public void Clear()
     {
+        _suppressWorkbenchRefresh = true;
+        try
+        {
+            Workbench.LoadLoops([]);
+        }
+        finally
+        {
+            _suppressWorkbenchRefresh = false;
+        }
         FileName = "未打开文件";
-        _loops = [];
         IsDemoGeometry = false;
         StatusMessage = "请选择 DXF 文件并确认毫米单位。";
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RefreshFromWorkbench()
+    {
+        if (_suppressWorkbenchRefresh)
+            return;
+
+        var problems = Workbench.ProblemMessages;
+        StatusMessage = problems.Count > 0
+            ? string.Join("；", problems)
+            : Workbench.State switch
+            {
+                WorkbenchState.Previewing => "CAD 预览待提交；可提交到会话或取消。",
+                WorkbenchState.Committed => "CAD 编辑已提交到可撤销会话（未写入项目文件）。",
+                _ when Workbench.SelectedLoopId is not null => $"已选中轮廓 {Workbench.SelectedLoopId}。",
+                _ when Loops.Count > 0 => $"已载入 {FileName} · {Loops.Count} 个闭合轮廓",
+                _ => "请选择 DXF 文件并确认毫米单位。",
+            };
         Changed?.Invoke(this, EventArgs.Empty);
     }
 }

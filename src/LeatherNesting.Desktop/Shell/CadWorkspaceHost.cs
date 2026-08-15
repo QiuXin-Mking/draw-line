@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using LeatherNesting.Desktop.DesignSystem;
 using LeatherNesting.Desktop.Modules.CadCanvas;
+using LeatherNesting.Desktop.ViewModels;
 using LeatherNesting.Desktop.Views;
 
 namespace LeatherNesting.Desktop.Shell;
@@ -13,18 +14,35 @@ public sealed class CadWorkspaceHost : Grid
 {
     private readonly CadHostState _state;
     private readonly TextBlock _fileName = new() { FontSize = 10, VerticalAlignment = VerticalAlignment.Center };
-    private readonly TextBlock _status = new() { FontSize = 10, Foreground = AppTheme.TodoAmber };
-    private readonly CadEvidenceCanvas _drawing = new();
+    private readonly TextBlock _status = new() { FontSize = 10, Foreground = AppTheme.TodoAmber, IsHitTestVisible = false };
+    private bool _hasRefittedData;
 
     public CadWorkspaceHost(CadHostState state, Action? requestImport = null)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
+        Drawing = new CanvasView
+        {
+            CanvasBrush = AppTheme.CanvasBlack,
+            OuterContourPen = new Pen(AppTheme.GeometryOuterContour, 1.5),
+            InternalContourPen = new Pen(AppTheme.GeometryInternalLine, 1.5),
+            SelectionPen = new Pen(AppTheme.ClassicFocus, 3),
+        };
+        Drawing.OnClick = point =>
+        {
+            if (_state.Workbench.CanPreview)
+                _state.Workbench.SelectPiece(point);
+        };
+        Drawing.OnDrag = delta =>
+        {
+            if (_state.Workbench.CanPreview && _state.Workbench.SelectedLoopId is not null)
+                _state.Workbench.MoveSelected(delta);
+        };
         FileOperationButtons = BuildFileRow(requestImport);
         DrawingToolButtons = BuildToolRow();
         Canvas = new Border
         {
             Background = AppTheme.CanvasBlack,
-            Child = new Grid { Children = { _drawing, BuildAxes(), _status } },
+            Child = new Grid { Children = { Drawing, BuildAxes(), _status } },
         };
         _status.Margin = new Thickness(6);
         _status.VerticalAlignment = VerticalAlignment.Bottom;
@@ -56,12 +74,16 @@ public sealed class CadWorkspaceHost : Grid
 
     public Border Canvas { get; }
 
+    public CanvasView Drawing { get; }
+
     private IReadOnlyList<Button> BuildFileRow(Action? requestImport)
     {
-        var newFile = FileButton("新建文件", () => _state.ReportUnsupported("新建文件"));
-        var open = FileButton("打开文件", requestImport ?? (() => _state.ReportUnsupported("打开文件对话框")));
-        var saveAs = FileButton("另存为", () => _state.ReportUnsupported("另存为"));
-        var replace = FileButton("替换皮料", () => _state.ReportUnsupported("替换皮料"));
+        var newFile = UnsupportedFileButton("新建文件");
+        var open = requestImport is null
+            ? UnsupportedFileButton("打开文件")
+            : FileButton("打开文件", requestImport);
+        var saveAs = UnsupportedFileButton("另存为");
+        var replace = UnsupportedFileButton("替换皮料");
         var name = FileButton("未打开文件", () => { });
         name.IsVisible = false;
         var close = FileButton("关闭", _state.Clear);
@@ -70,12 +92,24 @@ public sealed class CadWorkspaceHost : Grid
 
     private IReadOnlyList<Button> BuildToolRow() =>
     [
-        ToolButton("范围缩放", "⌗", () => _drawing.Refit()),
-        ToolButton("绘制多段线", "／", () => _state.ReportUnsupported("绘制多段线")),
-        ToolButton("绘制矩形", "□", () => _state.ReportUnsupported("绘制矩形")),
-        ToolButton("选择", "↖", () => _state.ReportUnsupported("CAD 选择")),
-        ToolButton("删除", "×", () => _state.ReportUnsupported("删除对象")),
+        ToolButton("范围缩放", "⌗", Drawing.Refit),
+        UnsupportedToolButton("绘制多段线", "／"),
+        UnsupportedToolButton("绘制矩形", "□"),
+        ToolButton("选择", "↖", () =>
+        {
+            _state.Workbench.SelectTool(CadToolMode.Select);
+            _state.ReportError("选择模式：单击选中轮廓，拖动创建移动预览。");
+        }),
+        UnsupportedToolButton("删除", "×"),
     ];
+
+    private static Button UnsupportedFileButton(string label)
+    {
+        var button = FileButton(label, () => { });
+        button.IsEnabled = false;
+        ToolTip.SetTip(button, $"{label} · {TodoBadge.StandardText}");
+        return button;
+    }
 
     private static Button FileButton(string label, Action action)
     {
@@ -106,6 +140,13 @@ public sealed class CadWorkspaceHost : Grid
         return button;
     }
 
+    private static Button UnsupportedToolButton(string tip, string mark)
+    {
+        var button = ToolButton($"{tip} · {TodoBadge.StandardText}", mark, () => { });
+        button.IsEnabled = false;
+        return button;
+    }
+
     private static Control BuildAxes() => new TextBlock
     {
         Text = "+X\n│\n└── +Y",
@@ -119,6 +160,9 @@ public sealed class CadWorkspaceHost : Grid
     {
         _fileName.Text = $"  {_state.FileName}  ";
         _status.Text = _state.StatusMessage;
-        _drawing.SetData(_state.Loops);
+        Drawing.SelectedLoopId = _state.Workbench.SelectedLoopId;
+        Drawing.SetData(_state.Loops, refit: !_hasRefittedData);
+        DrawingToolButtons[3].IsEnabled = _state.Workbench.CanPreview && _state.Loops.Count > 0;
+        _hasRefittedData = _state.Loops.Count > 0;
     }
 }

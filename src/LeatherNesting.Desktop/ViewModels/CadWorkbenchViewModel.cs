@@ -24,27 +24,35 @@ public sealed class CadWorkbenchViewModel
 
     public CadToolMode ToolMode => _toolMode;
     public WorkbenchState State => _state;
-    public bool CanPreview => _state == WorkbenchState.Ready && _session is not null;
+    public bool CanPreview => _state != WorkbenchState.Previewing && _session is not null;
     public bool CanCommit => _state == WorkbenchState.Previewing;
     public bool CanCancel => _state == WorkbenchState.Previewing;
     public bool CanUndo => _session?.CanUndo ?? false;
     public bool CanRedo => _session?.CanRedo ?? false;
     public IReadOnlyList<string> ProblemMessages => _problemMessages;
 
+    public event EventHandler? Changed;
+
     public IReadOnlyList<Loop2D>? CurrentLoops => _session?.PreviewLoops;
 
     /// <summary>Initializes the workbench with a set of loops from the current project.</summary>
     public void LoadLoops(IReadOnlyList<Loop2D> loops)
     {
+        ArgumentNullException.ThrowIfNull(loops);
         _session = new CadOperationSession(loops);
         _state = WorkbenchState.Ready;
+        SelectedLoopId = null;
         _problemMessages.Clear();
+        NotifyChanged();
     }
 
     public void SelectTool(CadToolMode mode)
     {
+        if (_toolMode == mode && _problemMessages.Count == 0)
+            return;
         _toolMode = mode;
         _problemMessages.Clear();
+        NotifyChanged();
     }
 
     // --- Boundary Repair ---
@@ -54,7 +62,7 @@ public sealed class CadWorkbenchViewModel
         var loop = _session?.PreviewLoops.FirstOrDefault();
         if (loop is null)
         {
-            _problemMessages.Add("没有可闭合的轮廓。");
+            ReportProblem("没有可闭合的轮廓。");
             return;
         }
         RunPreview(new CloseContourCommand(loop.StableId));
@@ -76,7 +84,7 @@ public sealed class CadWorkbenchViewModel
         var loop = _session?.PreviewLoops.FirstOrDefault();
         if (loop is null)
         {
-            _problemMessages.Add("没有可编辑的轮廓。");
+            ReportProblem("没有可编辑的轮廓。");
             return;
         }
         RunPreview(new InsertNodeCommand(loop.StableId, point));
@@ -87,7 +95,7 @@ public sealed class CadWorkbenchViewModel
         var loop = _session?.PreviewLoops.FirstOrDefault();
         if (loop is null)
         {
-            _problemMessages.Add("没有可编辑的轮廓。");
+            ReportProblem("没有可编辑的轮廓。");
             return;
         }
         RunPreview(new MoveNodeCommand(loop.StableId, nodeIndex, newPosition));
@@ -98,7 +106,7 @@ public sealed class CadWorkbenchViewModel
         var loop = _session?.PreviewLoops.FirstOrDefault();
         if (loop is null)
         {
-            _problemMessages.Add("没有可编辑的轮廓。");
+            ReportProblem("没有可编辑的轮廓。");
             return;
         }
         RunPreview(new DeleteNodeCommand(loop.StableId, nodeIndex));
@@ -108,7 +116,11 @@ public sealed class CadWorkbenchViewModel
 
     public void PreviewBreakAtPoint(Point2D point)
     {
-        if (_session is null || _session.PreviewLoops.Count == 0) return;
+        if (_session is null || _session.PreviewLoops.Count == 0)
+        {
+            ReportProblem("没有可打断的轮廓。");
+            return;
+        }
         var ops = new BreakOperations();
         foreach (var loop in _session.PreviewLoops)
         {
@@ -116,11 +128,16 @@ public sealed class CadWorkbenchViewModel
             _problemMessages.AddRange(result.Issues);
             _state = WorkbenchState.Previewing;
         }
+        NotifyChanged();
     }
 
     public void PreviewRemoveSegment(Point2D pointA, Point2D pointB)
     {
-        if (_session is null || _session.PreviewLoops.Count == 0) return;
+        if (_session is null || _session.PreviewLoops.Count == 0)
+        {
+            ReportProblem("没有可删除的线段。");
+            return;
+        }
         var ops = new BreakOperations();
         foreach (var loop in _session.PreviewLoops)
         {
@@ -128,6 +145,7 @@ public sealed class CadWorkbenchViewModel
             _problemMessages.AddRange(result.Issues);
             _state = WorkbenchState.Previewing;
         }
+        NotifyChanged();
     }
 
     // --- Notch ---
@@ -142,13 +160,17 @@ public sealed class CadWorkbenchViewModel
         NotchOutputMode outputMode = NotchOutputMode.Cut,
         string layerOrTool = "CUT")
     {
-        if (_session is null) return;
+        if (_session is null)
+        {
+            ReportProblem("没有 session。");
+            return;
+        }
         var notch = new NotchFeature(contourId, anchorArcLength, shape, width, depth, materialSide, outputMode, layerOrTool);
         var validator = new NotchValidator();
         var contour = _session.PreviewLoops.FirstOrDefault(l => l.StableId == contourId);
         if (contour is null)
         {
-            _problemMessages.Add($"未找到轮廓 {contourId}。");
+            ReportProblem($"未找到轮廓 {contourId}。");
             return;
         }
         var validation = validator.Validate(notch, contour, []);
@@ -156,6 +178,7 @@ public sealed class CadWorkbenchViewModel
         _problemMessages.AddRange(validation.Errors);
         _problemMessages.AddRange(validation.Warnings);
         if (validation.IsValid) _state = WorkbenchState.Previewing;
+        NotifyChanged();
     }
 
     // --- Selection & Transform ---
@@ -164,21 +187,50 @@ public sealed class CadWorkbenchViewModel
 
     public void SelectPiece(Point2D point)
     {
-        if (_session is null) return;
-        SelectedLoopId = _session.PreviewLoops.LastOrDefault(l => l.ContainsPoint(point))?.StableId;
+        if (_session is null)
+        {
+            ReportProblem("没有 session。");
+            return;
+        }
+        var selected = _session.PreviewLoops.LastOrDefault(l => l.ContainsPoint(point))?.StableId;
+        if (selected == SelectedLoopId)
+            return;
+        SelectedLoopId = selected;
+        _problemMessages.Clear();
+        NotifyChanged();
+    }
+
+    public void ClearSelection()
+    {
+        if (SelectedLoopId is null)
+            return;
+        SelectedLoopId = null;
+        NotifyChanged();
     }
 
     public void MoveSelected(Point2D delta)
     {
-        if (_session is null || SelectedLoopId is null) return;
+        if (_session is null || SelectedLoopId is null)
+        {
+            ReportProblem("请先选中要移动的轮廓。");
+            return;
+        }
         RunPreview(new TransformCommand(SelectedLoopId, new Transform2D(delta.X, delta.Y, 0, false)));
     }
 
     public void RotateSelected(double degrees)
     {
-        if (_session is null || SelectedLoopId is null) return;
+        if (_session is null || SelectedLoopId is null)
+        {
+            ReportProblem("请先选中要旋转的轮廓。");
+            return;
+        }
         var loop = _session.PreviewLoops.FirstOrDefault(l => l.StableId == SelectedLoopId);
-        if (loop is null) return;
+        if (loop is null)
+        {
+            ReportProblem("选中的轮廓已不存在。");
+            return;
+        }
         RunPreview(new TransformCommand(SelectedLoopId, Transform2D.RotateAbout(loop.Centroid, degrees)));
     }
 
@@ -186,40 +238,71 @@ public sealed class CadWorkbenchViewModel
 
     public void Commit()
     {
-        _session?.Commit();
-        _state = WorkbenchState.Committed;
+        var result = _session?.Commit() ?? CadCommandResult.Failed(["没有 session。"]);
+        Complete(result, WorkbenchState.Committed);
     }
 
     public void Cancel()
     {
-        _session?.Cancel();
+        if (_session is null)
+        {
+            ReportProblem("没有 session。");
+            return;
+        }
+        if (_state != WorkbenchState.Previewing)
+        {
+            ReportProblem("没有可取消的预览操作。");
+            return;
+        }
+        _session.Cancel();
         _state = WorkbenchState.Ready;
         _problemMessages.Clear();
+        NotifyChanged();
     }
 
     public void Undo()
     {
         var (result, _) = _session?.Undo() ?? (CadCommandResult.Failed(["没有 session。"]), null);
-        _problemMessages.Clear();
-        _problemMessages.AddRange(result.Diagnostics);
-        _state = WorkbenchState.Ready;
+        Complete(result, WorkbenchState.Ready);
     }
 
     public void Redo()
     {
         var (result, _) = _session?.Redo() ?? (CadCommandResult.Failed(["没有 session。"]), null);
-        _problemMessages.Clear();
-        _problemMessages.AddRange(result.Diagnostics);
-        _state = WorkbenchState.Ready;
+        Complete(result, WorkbenchState.Ready);
     }
 
     private void RunPreview(LoopTransformCommand command)
     {
-        if (_session is null) return;
+        if (_session is null)
+        {
+            ReportProblem("没有 session。");
+            return;
+        }
+        if (_state == WorkbenchState.Previewing)
+        {
+            ReportProblem("请先提交或取消当前预览。");
+            return;
+        }
         var result = _session.Preview(command);
+        Complete(result, WorkbenchState.Previewing);
+    }
+
+    private void Complete(CadCommandResult result, WorkbenchState successState)
+    {
         _problemMessages.Clear();
         _problemMessages.AddRange(result.Diagnostics);
         if (result.Success)
-            _state = WorkbenchState.Previewing;
+            _state = successState;
+        NotifyChanged();
     }
+
+    private void ReportProblem(string message)
+    {
+        _problemMessages.Clear();
+        _problemMessages.Add(message);
+        NotifyChanged();
+    }
+
+    private void NotifyChanged() => Changed?.Invoke(this, EventArgs.Empty);
 }

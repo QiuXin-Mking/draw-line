@@ -121,4 +121,90 @@ public sealed class CadWorkbenchViewModelTests
         Assert.Equal(WorkbenchState.Ready, vm.State);
         Assert.Equal(4, vm.CurrentLoops![0].Curves.Count);
     }
+
+    [Fact]
+    public void Changed_reports_each_observable_workbench_transition()
+    {
+        var vm = new CadWorkbenchViewModel();
+        var changes = 0;
+        vm.Changed += (_, _) => changes++;
+
+        vm.LoadLoops([OpenContour()]);
+        Assert.Equal(1, changes);
+        vm.SelectPiece(new Point2D(10, 10));
+        Assert.Equal(2, changes);
+        vm.PreviewClose();
+        Assert.Equal(3, changes);
+        vm.Cancel();
+        Assert.Equal(4, changes);
+        vm.PreviewClose();
+        vm.Commit();
+        vm.Undo();
+        vm.Redo();
+
+        Assert.Equal(8, changes);
+    }
+
+    [Fact]
+    public void Loading_new_loops_clears_the_previous_selection()
+    {
+        var vm = new CadWorkbenchViewModel();
+        vm.LoadLoops([ClosedRectangle()]);
+        vm.SelectPiece(new Point2D(10, 10));
+        Assert.Equal("rect", vm.SelectedLoopId);
+
+        vm.LoadLoops([OpenContour()]);
+
+        Assert.Null(vm.SelectedLoopId);
+    }
+
+    [Fact]
+    public void ClearSelection_notifies_only_when_selection_changes()
+    {
+        var vm = new CadWorkbenchViewModel();
+        vm.LoadLoops([ClosedRectangle()]);
+        vm.SelectPiece(new Point2D(10, 10));
+        var changes = 0;
+        vm.Changed += (_, _) => changes++;
+
+        vm.ClearSelection();
+        vm.ClearSelection();
+
+        Assert.Equal(1, changes);
+        Assert.Null(vm.SelectedLoopId);
+    }
+
+    [Fact]
+    public void Invalid_transactions_do_not_claim_success()
+    {
+        var vm = new CadWorkbenchViewModel();
+        var changes = 0;
+        vm.Changed += (_, _) => changes++;
+
+        vm.Commit();
+        Assert.Equal(WorkbenchState.Ready, vm.State);
+        Assert.Contains("session", Assert.Single(vm.ProblemMessages));
+        vm.Undo();
+        Assert.Equal(WorkbenchState.Ready, vm.State);
+        Assert.Contains("session", Assert.Single(vm.ProblemMessages));
+        vm.Redo();
+        Assert.Equal(WorkbenchState.Ready, vm.State);
+        Assert.Contains("session", Assert.Single(vm.ProblemMessages));
+        Assert.Equal(3, changes);
+    }
+
+    [Fact]
+    public void Committed_session_accepts_the_next_edit_preview()
+    {
+        var vm = new CadWorkbenchViewModel();
+        vm.LoadLoops([OpenContour()]);
+        vm.PreviewClose();
+        vm.Commit();
+
+        Assert.True(vm.CanPreview);
+        vm.SelectPiece(new Point2D(10, 10));
+        vm.RotateSelected(15);
+
+        Assert.Equal(WorkbenchState.Previewing, vm.State);
+    }
 }
