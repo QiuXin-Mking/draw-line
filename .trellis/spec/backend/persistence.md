@@ -66,6 +66,14 @@ Constructors use lowercase parameters (`x`, `y`, `translateX`) but properties ar
 
 Persist via `.tmp` write → `File.Move` overwrite, keeping a `.bak` copy of the previous file, and delete `.tmp` in `finally`. See `ZipProjectStore` / `ZipNestingProjectStore`.
 
+## Snapshot recovery
+
+`ProjectSnapshotStore` persists a crash-recovery snapshot of the whole `NestingProject` to a sibling `<project>.autosave` file, reusing `ZipNestingProjectStore` serialization.
+
+- `SaveSnapshotAsync` writes the snapshot; call after each committed CAD operation (fire-and-forget).
+- `LoadSnapshotAsync` returns `null` when no snapshot exists **or** when the snapshot is corrupt (treat corrupt as absent, not as a crash).
+- `ClearSnapshot` deletes the snapshot on normal save/exit, so a surviving `.autosave` on startup signals an unclean exit.
+
 ## Gotchas
 
 - **Domain can't hold geometry** — putting `Loop2D` in `Domain` creates a project-reference cycle. Geometry-bearing entities go in `Application.Domain`.
