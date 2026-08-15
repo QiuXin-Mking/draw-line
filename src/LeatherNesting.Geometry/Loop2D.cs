@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace LeatherNesting.Geometry;
 
 /// <summary>Role of a loop in a piece: outer boundary or hole.</summary>
@@ -65,6 +67,7 @@ public sealed record Loop2D
         }
     }
 
+    [JsonConstructor]
     public Loop2D(string stableId, LoopRole role, IReadOnlyList<Curve2D> curves)
     {
         if (string.IsNullOrWhiteSpace(stableId))

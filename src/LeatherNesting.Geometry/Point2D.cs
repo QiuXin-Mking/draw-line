@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace LeatherNesting.Geometry;
 
 /// <summary>2D point with finite coordinate validation.</summary>
@@ -6,6 +8,7 @@ public sealed record Point2D
     public double X { get; init; }
     public double Y { get; init; }
 
+    [JsonConstructor]
     public Point2D(double x, double y)
     {
         GeometryConstants.RejectNonFinite(x, nameof(x));

@@ -1,6 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace LeatherNesting.Geometry;
 
 /// <summary>Base type for 2D curve segments.</summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(LineSegment2D), "line")]
+[JsonDerivedType(typeof(CircularArc2D), "arc")]
+[JsonDerivedType(typeof(Polyline2D), "polyline")]
 public abstract record Curve2D
 {
     public abstract Point2D StartPoint { get; }

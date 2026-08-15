@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace LeatherNesting.Geometry;
 
 /// <summary>2D affine transform: translation, rotation (degrees CCW), uniform mirror.</summary>
@@ -10,6 +12,7 @@ public sealed record Transform2D
 
     public static Transform2D Identity => new(0, 0, 0, false);
 
+    [JsonConstructor]
     public Transform2D(double translateX, double translateY, double rotationDegrees, bool mirror)
     {
         GeometryConstants.RejectNonFinite(translateX, nameof(translateX));
