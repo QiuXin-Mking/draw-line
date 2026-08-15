@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 6
+- **Total Sessions**: 7
 - **Last Active**: 2026-08-15
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~140 | Active |
+| `journal-1.md` | ~162 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 7 | 2026-08-15 | CAD 坐标轴固定在模型原点（带箭头） | `588f8ba`, `8d9ddb7` | `main` |
 | 6 | 2026-08-15 | CAD 交互功能：动态标尺 + 坐标提示 + 缩放联动 | `7e465b4`, `f72f949`, `801e8e4` | `main` |
 | 5 | 2026-08-15 | CAD 画布右键菜单 21 项 | `7b96252`, `97cfd30`, `b90c8f3` | `main` |
 | 4 | 2026-08-15 | 文件/编辑菜单下拉与占位框优化 | `2800994`, `47b88ef`, `1be5448` | `main` |

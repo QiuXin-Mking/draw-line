@@ -138,3 +138,25 @@ G 区标尺由静态死文字改为自绘控件：CanvasView 暴露 ViewScale/Vi
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: CAD 坐标轴固定在模型原点（带箭头）
+
+**Date**: 2026-08-15
+**Task**: CAD 坐标轴固定在模型原点（带箭头）
+**Branch**: `main`
+
+### Summary
+
+G 区画布坐标轴由固定左上角静态 TextBlock 改为自绘 CadOriginAxes：原点 (0,0) 像素投影处绘制带箭头十字轴（+X 右向、+Y 上向），随平移/缩放重绘、出屏隐藏，色 MaterialBoundary。新增 AXIS-001..004，全量 381 测试通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `588f8ba` | (see git log) |
+| `8d9ddb7` | (see git log) |
+
+### Status
+
+[OK] **Completed**
