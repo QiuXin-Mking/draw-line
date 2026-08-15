@@ -60,11 +60,40 @@ public static class ShellTopMenu
             new ShellMenuCommand("测试项", "M08", true, IsEnabled: false),
         });
 
+    /// <summary>「绘制」下拉菜单：CAD 画布作图命令，路由到 M03。</summary>
+    public static IReadOnlyList<ShellMenuEntry> DrawMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("绘制孔", "M03", true),
+            new ShellMenuCommand("绘制线", "M03", true),
+        });
+
+    /// <summary>「数据库」下拉菜单：订单管理路由到 M01（项目与订单）。</summary>
+    public static IReadOnlyList<ShellMenuEntry> DatabaseMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("订单管理", "M01", true),
+        });
+
+    /// <summary>「工具」下拉菜单：CAD 工具路由到 M02，统计报表路由到 M11（导出），其余为占位。</summary>
+    public static IReadOnlyList<ShellMenuEntry> ToolsMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("CAD工具", "M02", true),
+            new ShellMenuCommand("实时投影", "M03", true),
+            new ShellMenuCommand("实时看板", "M03", true),
+            new ShellMenuCommand("统计报表", "M11", true),
+            new ShellMenuCommand("串口工具", "M03", true),
+        });
+
     /// <summary>返回指定顶级菜单的内容；未实现的菜单返回 null（渲染为占位）。</summary>
     public static IReadOnlyList<ShellMenuEntry>? EntriesFor(string label) =>
         StringComparer.Ordinal.Equals(label, "文件") ? FileMenu :
         StringComparer.Ordinal.Equals(label, "编辑") ? EditMenu :
         StringComparer.Ordinal.Equals(label, "操作") ? OperationMenu :
+        StringComparer.Ordinal.Equals(label, "绘制") ? DrawMenu :
+        StringComparer.Ordinal.Equals(label, "数据库") ? DatabaseMenu :
+        StringComparer.Ordinal.Equals(label, "工具") ? ToolsMenu :
         null;
 }
 

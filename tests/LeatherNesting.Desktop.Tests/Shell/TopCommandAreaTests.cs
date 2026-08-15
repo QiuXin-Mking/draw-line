@@ -82,8 +82,25 @@ public sealed class TopCommandAreaTests
             operationMenu.Items.OfType<MenuItem>().Where(item => !Equals(item.Header, "测试项")),
             item => Assert.True(item.IsEnabled));
 
+        var drawMenu = area.MenuItems.Single(item => Equals(item.Header, "绘制"));
+        Assert.Equal(
+            ShellTopMenu.DrawMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            drawMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+
+        var databaseMenu = area.MenuItems.Single(item => Equals(item.Header, "数据库"));
+        Assert.Equal(
+            ShellTopMenu.DatabaseMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            databaseMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+
+        var toolsMenu = area.MenuItems.Single(item => Equals(item.Header, "工具"));
+        Assert.Equal(
+            ShellTopMenu.ToolsMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            toolsMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+
         Assert.All(
-            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑") && !Equals(item.Header, "操作")),
+            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑")
+                && !Equals(item.Header, "操作") && !Equals(item.Header, "绘制")
+                && !Equals(item.Header, "数据库") && !Equals(item.Header, "工具")),
             item =>
             {
                 var placeholder = Assert.Single(item.Items.Cast<object>());
@@ -245,6 +262,46 @@ public sealed class TopCommandAreaTests
 
         var testItem = operationMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "测试项"));
         Assert.False(testItem.IsEnabled);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-011")]
+    public void Draw_database_and_tools_menus_navigate_to_their_target_modules()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M07", 7),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var drawMenu = area.MenuItems.Single(item => Equals(item.Header, "绘制"));
+        var drawHole = drawMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "绘制孔"));
+        drawHole.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M03", viewModel.CurrentModule!.Id);
+        Assert.Contains("绘制孔", workspace.Snapshot.TodoHint);
+
+        var databaseMenu = area.MenuItems.Single(item => Equals(item.Header, "数据库"));
+        var orderManagement = databaseMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "订单管理"));
+        orderManagement.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M01", viewModel.CurrentModule!.Id);
+        Assert.Contains("订单管理", workspace.Snapshot.TodoHint);
+
+        var toolsMenu = area.MenuItems.Single(item => Equals(item.Header, "工具"));
+        var cadTools = toolsMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "CAD工具"));
+        cadTools.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M02", viewModel.CurrentModule!.Id);
+        Assert.Contains("CAD工具", workspace.Snapshot.TodoHint);
     }
 
     [Fact]
