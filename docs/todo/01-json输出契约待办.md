@@ -36,7 +36,7 @@
 | `piece.id` / `piece.name` | 裁片编号 / 名称 | ✅ |
 | `piece.outline` | 裁片原始轮廓（闭合多边形） | ✅ |
 | `piece.placement.x` / `.y` | 放置平移量 | ⬜ |
-| `piece.placement.rotation` | 放置旋转角（0° / 90°） | ⬜ |
+| `piece.placement.rotation` | 放置旋转角（任意角度，单位度，CCW 为正，与 `Transform2D.RotationDegrees` 对齐） | ⬜ |
 | `piece.size` | 尺码标识 | ✅（输入侧） |
 
 ### 排样统计
