@@ -6,6 +6,7 @@ using Xunit;
 
 namespace LeatherNesting.Desktop.Tests.DesignSystem.CadTools;
 
+[Collection("Avalonia UI")]
 public sealed class CadToolIconGroupsCDTests
 {
     public static TheoryData<CadToolIconKey> GroupCKeys => new()
