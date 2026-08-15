@@ -10,13 +10,16 @@ namespace LeatherNesting.Desktop.Shell;
 /// <summary>Traditional two-level desktop menu and icon command surface.</summary>
 public sealed class TopCommandArea : Border
 {
-    public TopCommandArea(Action<ShellToolbarCommand> activate)
+    private readonly Action<ShellMenuCommand> _activateMenu;
+
+    public TopCommandArea(Action<ShellToolbarCommand> activateToolbar, Action<ShellMenuCommand> activateMenu)
     {
-        ArgumentNullException.ThrowIfNull(activate);
+        ArgumentNullException.ThrowIfNull(activateToolbar);
+        _activateMenu = activateMenu ?? throw new ArgumentNullException(nameof(activateMenu));
 
         MenuItems = ShellTopMenu.Labels.Select(CreateMenuItem).ToArray();
         CommandButtons = ShellToolbar.Commands
-            .Select(command => new ShellToolbarButton(command, activate))
+            .Select(command => new ShellToolbarButton(command, activateToolbar))
             .ToArray();
 
         var menu = new Menu
@@ -121,19 +124,45 @@ public sealed class TopCommandArea : Border
 
     public TextBox OperatorText { get; }
 
-    private static MenuItem CreateMenuItem(string label) => new()
+    private MenuItem CreateMenuItem(string label)
     {
-        Header = label,
-        Foreground = AppTheme.PrimaryText,
-        ItemsSource = new[]
+        var menuItem = new MenuItem
         {
-            new MenuItem
+            Header = label,
+            Foreground = AppTheme.PrimaryText,
+        };
+
+        if (StringComparer.Ordinal.Equals(label, "文件"))
+        {
+            menuItem.ItemsSource = ShellTopMenu.FileCommands
+                .Select(CreateFileCommandItem)
+                .ToArray();
+        }
+        else
+        {
+            menuItem.ItemsSource = new[]
             {
-                Header = ShellTopMenu.PlaceholderText,
-                IsEnabled = false,
-            },
-        },
-    };
+                new MenuItem
+                {
+                    Header = ShellTopMenu.PlaceholderText,
+                    IsEnabled = false,
+                },
+            };
+        }
+
+        return menuItem;
+    }
+
+    private MenuItem CreateFileCommandItem(ShellMenuCommand command)
+    {
+        var item = new MenuItem
+        {
+            Header = command.Label,
+            Foreground = AppTheme.PrimaryText,
+        };
+        item.Click += (_, _) => _activateMenu(command);
+        return item;
+    }
 }
 
 public sealed class ShellToolbarButton : Button

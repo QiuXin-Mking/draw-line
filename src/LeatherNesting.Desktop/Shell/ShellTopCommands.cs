@@ -9,7 +9,23 @@ public static class ShellTopMenu
 
     public static IReadOnlyList<string> Labels { get; } = Array.AsReadOnly(
         new[] { "文件", "编辑", "操作", "绘制", "数据库", "工具", "设置", "帮助" });
+
+    /// <summary>「文件」下拉菜单命令，与图标工具栏共用同一套 shell 导航（模块 + 占位提示）。</summary>
+    public static IReadOnlyList<ShellMenuCommand> FileCommands { get; } = Array.AsReadOnly(
+        new[]
+        {
+            new ShellMenuCommand("新建排版", "M01", true),
+            new ShellMenuCommand("导入排版进度（axn）", "M02", true),
+            new ShellMenuCommand("导出排版进度（axn）", "M11", true),
+            new ShellMenuCommand("恢复数据", "M12", true),
+            new ShellMenuCommand("导出统计报表", "M11", true),
+        });
 }
+
+public sealed record ShellMenuCommand(
+    string Label,
+    string TargetModuleId,
+    bool IsPlaceholderAction);
 
 public sealed record ShellToolbarCommand(
     string Label,

@@ -55,14 +55,23 @@ public sealed class TopCommandAreaTests
     [Trait("TestId", "TOP-003")]
     public void Top_area_builds_expandable_todo_menus_and_a_horizontally_accessible_icon_toolbar()
     {
-        var area = new TopCommandArea(_ => { });
+        var area = new TopCommandArea(_ => { }, _ => { });
 
         Assert.Equal(ExpectedMenuLabels, area.MenuItems.Select(item => item.Header));
-        Assert.All(area.MenuItems, item =>
-        {
-            var placeholder = Assert.Single(item.Items.Cast<object>());
-            Assert.Equal(ShellTopMenu.PlaceholderText, Assert.IsType<MenuItem>(placeholder).Header);
-        });
+
+        var fileMenu = area.MenuItems.Single(item => Equals(item.Header, "文件"));
+        Assert.Equal(
+            ShellTopMenu.FileCommands.Select(command => command.Label).ToArray(),
+            fileMenu.Items.Cast<MenuItem>().Select(item => item.Header));
+        Assert.All(fileMenu.Items.Cast<MenuItem>(), item => Assert.True(item.IsEnabled));
+
+        Assert.All(
+            area.MenuItems.Where(item => !Equals(item.Header, "文件")),
+            item =>
+            {
+                var placeholder = Assert.Single(item.Items.Cast<object>());
+                Assert.Equal(ShellTopMenu.PlaceholderText, Assert.IsType<MenuItem>(placeholder).Header);
+            });
         Assert.Equal(ExpectedToolbarLabels, area.CommandButtons.Select(button => button.Descriptor.Label));
         Assert.All(area.CommandButtons, button =>
         {
@@ -85,7 +94,7 @@ public sealed class TopCommandAreaTests
     [Trait("TestId", "TOP-007")]
     public void Menu_labels_use_explicit_dark_text_on_the_light_menu_surface()
     {
-        var area = new TopCommandArea(_ => { });
+        var area = new TopCommandArea(_ => { }, _ => { });
 
         Assert.All(area.MenuItems, item => Assert.Same(AppTheme.PrimaryText, item.Foreground));
     }
@@ -108,7 +117,7 @@ public sealed class TopCommandAreaTests
             ],
             workspace,
             workspace);
-        var area = new TopCommandArea(viewModel.ActivateToolbarCommand);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
 
         var orderManagement = area.CommandButtons.Single(button => button.Descriptor.Label == "订单管理");
         orderManagement.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -125,6 +134,40 @@ public sealed class TopCommandAreaTests
         Assert.Equal("M08", viewModel.CurrentModule!.Id);
         Assert.Contains(TodoBadge.StandardText, workspace.Snapshot.TodoHint);
         Assert.Contains("开始排版", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-008")]
+    public void File_menu_commands_navigate_through_the_shell_and_stay_honest_placeholders()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var fileMenu = area.MenuItems.Single(item => Equals(item.Header, "文件"));
+        var importProgress = fileMenu.Items.Cast<MenuItem>()
+            .Single(item => Equals(item.Header, "导入排版进度（axn）"));
+        importProgress.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M02", viewModel.CurrentModule!.Id);
+        Assert.Contains("导入排版进度", workspace.Snapshot.TodoHint);
+
+        var newLayout = fileMenu.Items.Cast<MenuItem>()
+            .Single(item => Equals(item.Header, "新建排版"));
+        newLayout.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M01", viewModel.CurrentModule!.Id);
+        Assert.Contains("新建排版", workspace.Snapshot.TodoHint);
     }
 
     [Fact]

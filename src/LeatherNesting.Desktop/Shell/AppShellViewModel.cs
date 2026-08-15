@@ -84,6 +84,19 @@ public sealed class AppShellViewModel
             ShowTodo(command.Label);
     }
 
+    public void ActivateMenuCommand(ShellMenuCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        var module = Modules.SingleOrDefault(candidate =>
+            StringComparer.Ordinal.Equals(candidate.Id, command.TargetModuleId));
+        if (module is null)
+            throw new InvalidOperationException($"Menu command '{command.Label}' targets missing module '{command.TargetModuleId}'.");
+
+        Select(module);
+        if (command.IsPlaceholderAction)
+            ShowTodo(command.Label);
+    }
+
     private void OnWorkspaceSnapshotChanged(object? sender, WorkspaceSnapshot snapshot)
     {
         var target = Modules.FirstOrDefault(module => StringComparer.Ordinal.Equals(module.Id, snapshot.ActiveModuleId));

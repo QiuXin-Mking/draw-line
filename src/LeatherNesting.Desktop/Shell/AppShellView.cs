@@ -126,11 +126,17 @@ public sealed class AppShellView : UserControl
         return grid;
     }
 
-    private TopCommandArea BuildTopBar() => new(command =>
-    {
-        _viewModel.ActivateToolbarCommand(command);
-        RefreshModuleOverlay();
-    });
+    private TopCommandArea BuildTopBar() => new(
+        command =>
+        {
+            _viewModel.ActivateToolbarCommand(command);
+            RefreshModuleOverlay();
+        },
+        command =>
+        {
+            _viewModel.ActivateMenuCommand(command);
+            RefreshModuleOverlay();
+        });
 
     private Grid BuildBody()
     {
