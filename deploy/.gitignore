@@ -1,0 +1,2 @@
+# 发布产物由 deploy.ps1 生成，不入库
+artifacts/
