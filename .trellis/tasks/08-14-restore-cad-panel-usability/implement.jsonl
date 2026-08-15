@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Defines the persistent five-pane shell, semantic theme use, and prohibition on embedding a second complete CAD page."}
+{"file":".trellis/spec/frontend/state-management.md","reason":"Defines confirmed-import publication through one shared CadHostState and the M02-to-fixed-host boundary."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Required for tracing M02 import through shared state, workbench commands, canvas projection, and shell controls."}
+{"file":".trellis/tasks/08-14-restore-cad-panel-usability/research/root-cause.md","reason":"Provides code and test anchors proving why the visible CAD host is read-only while reusable editing capability is hidden."}
