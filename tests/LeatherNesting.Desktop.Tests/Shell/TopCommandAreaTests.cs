@@ -61,12 +61,18 @@ public sealed class TopCommandAreaTests
 
         var fileMenu = area.MenuItems.Single(item => Equals(item.Header, "文件"));
         Assert.Equal(
-            ShellTopMenu.FileCommands.Select(command => command.Label).ToArray(),
-            fileMenu.Items.Cast<MenuItem>().Select(item => item.Header));
-        Assert.All(fileMenu.Items.Cast<MenuItem>(), item => Assert.True(item.IsEnabled));
+            ShellTopMenu.FileMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            fileMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+        Assert.All(fileMenu.Items.OfType<MenuItem>(), item => Assert.True(item.IsEnabled));
+
+        var editMenu = area.MenuItems.Single(item => Equals(item.Header, "编辑"));
+        Assert.Equal(
+            ShellTopMenu.EditMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            editMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+        Assert.Equal(4, editMenu.Items.OfType<Separator>().Count());
 
         Assert.All(
-            area.MenuItems.Where(item => !Equals(item.Header, "文件")),
+            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑")),
             item =>
             {
                 var placeholder = Assert.Single(item.Items.Cast<object>());
@@ -168,6 +174,34 @@ public sealed class TopCommandAreaTests
         newLayout.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Assert.Equal("M01", viewModel.CurrentModule!.Id);
         Assert.Contains("新建排版", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-009")]
+    public void Edit_menu_commands_route_to_the_canvas_and_separators_group_actions()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var editMenu = area.MenuItems.Single(item => Equals(item.Header, "编辑"));
+        var undo = editMenu.Items.OfType<MenuItem>()
+            .Single(item => Equals(item.Header, "撤销(Ctrl+Z)"));
+        undo.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M03", viewModel.CurrentModule!.Id);
+        Assert.Contains("撤销", workspace.Snapshot.TodoHint);
     }
 
     [Fact]

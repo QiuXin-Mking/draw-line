@@ -126,34 +126,33 @@ public sealed class TopCommandArea : Border
 
     private MenuItem CreateMenuItem(string label)
     {
-        var menuItem = new MenuItem
+        var entries = ShellTopMenu.EntriesFor(label);
+
+        return new MenuItem
         {
             Header = label,
             Foreground = AppTheme.PrimaryText,
-        };
-
-        if (StringComparer.Ordinal.Equals(label, "文件"))
-        {
-            menuItem.ItemsSource = ShellTopMenu.FileCommands
-                .Select(CreateFileCommandItem)
-                .ToArray();
-        }
-        else
-        {
-            menuItem.ItemsSource = new[]
-            {
-                new MenuItem
+            ItemsSource = entries is null
+                ? new Control[]
                 {
-                    Header = ShellTopMenu.PlaceholderText,
-                    IsEnabled = false,
-                },
-            };
-        }
-
-        return menuItem;
+                    new MenuItem
+                    {
+                        Header = ShellTopMenu.PlaceholderText,
+                        IsEnabled = false,
+                    },
+                }
+                : entries.Select(CreateMenuEntry).ToArray(),
+        };
     }
 
-    private MenuItem CreateFileCommandItem(ShellMenuCommand command)
+    private Control CreateMenuEntry(ShellMenuEntry entry) => entry switch
+    {
+        ShellMenuCommand command => CreateCommandItem(command),
+        ShellMenuSeparator => new Separator(),
+        _ => throw new ArgumentOutOfRangeException(nameof(entry)),
+    };
+
+    private MenuItem CreateCommandItem(ShellMenuCommand command)
     {
         var item = new MenuItem
         {

@@ -11,8 +11,8 @@ public static class ShellTopMenu
         new[] { "文件", "编辑", "操作", "绘制", "数据库", "工具", "设置", "帮助" });
 
     /// <summary>「文件」下拉菜单命令，与图标工具栏共用同一套 shell 导航（模块 + 占位提示）。</summary>
-    public static IReadOnlyList<ShellMenuCommand> FileCommands { get; } = Array.AsReadOnly(
-        new[]
+    public static IReadOnlyList<ShellMenuEntry> FileMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
         {
             new ShellMenuCommand("新建排版", "M01", true),
             new ShellMenuCommand("导入排版进度（axn）", "M02", true),
@@ -20,12 +20,49 @@ public static class ShellTopMenu
             new ShellMenuCommand("恢复数据", "M12", true),
             new ShellMenuCommand("导出统计报表", "M11", true),
         });
+
+    /// <summary>「编辑」下拉菜单：动作均为占位，快捷键写在标签内以对齐参照软件（Esc/Del 保留原名）。</summary>
+    public static IReadOnlyList<ShellMenuEntry> EditMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("撤销(Ctrl+Z)", "M03", true),
+            new ShellMenuCommand("回撤(Ctrl+Y)", "M03", true),
+            new ShellMenuSeparator(),
+            new ShellMenuCommand("剪切(Ctrl+X)", "M03", true),
+            new ShellMenuCommand("复制(Ctrl+C)", "M03", true),
+            new ShellMenuCommand("粘贴(Ctrl+V)", "M03", true),
+            new ShellMenuSeparator(),
+            new ShellMenuCommand("全选(Ctrl+A)", "M03", true),
+            new ShellMenuCommand("反选(Shift+A)", "M03", true),
+            new ShellMenuCommand("按类型选择", "M03", true),
+            new ShellMenuCommand("取消选择(Esc)", "M03", true),
+            new ShellMenuSeparator(),
+            new ShellMenuCommand("删除(Del)", "M03", true),
+            new ShellMenuCommand("删除外部", "M03", true),
+            new ShellMenuCommand("清空全部", "M03", true),
+            new ShellMenuCommand("镜像(Ctrl+M)", "M03", true),
+            new ShellMenuCommand("组合(Ctrl+G)", "M03", true),
+            new ShellMenuCommand("取消组合(Shift+G)", "M03", true),
+            new ShellMenuSeparator(),
+            new ShellMenuCommand("导到订单(Ctrl+T)", "M03", true),
+        });
+
+    /// <summary>返回指定顶级菜单的内容；未实现的菜单返回 null（渲染为占位）。</summary>
+    public static IReadOnlyList<ShellMenuEntry>? EntriesFor(string label) =>
+        StringComparer.Ordinal.Equals(label, "文件") ? FileMenu :
+        StringComparer.Ordinal.Equals(label, "编辑") ? EditMenu :
+        null;
 }
+
+/// <summary>顶级菜单条目：命令或分隔线。</summary>
+public abstract record ShellMenuEntry;
 
 public sealed record ShellMenuCommand(
     string Label,
     string TargetModuleId,
-    bool IsPlaceholderAction);
+    bool IsPlaceholderAction) : ShellMenuEntry;
+
+public sealed record ShellMenuSeparator : ShellMenuEntry;
 
 public sealed record ShellToolbarCommand(
     string Label,
