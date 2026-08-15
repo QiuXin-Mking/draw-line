@@ -3,8 +3,13 @@ using LeatherNesting.Geometry.Nesting;
 
 namespace LeatherNesting.Application;
 
-/// <summary>A placed piece in a nesting DXF export.</summary>
-public sealed record NestingDxfPiece(string PieceId, double RotationDegrees, Loop2D PlacedLoop);
+/// <summary>A placed piece in a nesting DXF export: outer contour, inner holes, and internal lines.</summary>
+public sealed record NestingDxfPiece(
+    string PieceId,
+    double RotationDegrees,
+    Loop2D PlacedOuter,
+    IReadOnlyList<Loop2D> PlacedHoles,
+    IReadOnlyList<InternalLine> PlacedLines);
 
 /// <summary>Structured output model for a nesting DXF export.</summary>
 public sealed record NestingDxfDocument(Loop2D Material, IReadOnlyList<NestingDxfPiece> Pieces, string Title);
@@ -23,16 +28,28 @@ public sealed class ExportNestingDxfUseCase(INestingDxfWriter writer)
         NestResult result,
         Loop2D material,
         double gapMm,
+        IReadOnlyDictionary<string, PieceGeometry> pieces,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(pieces);
 
-        var pieces = result.Placements
-            .Select(p => new NestingDxfPiece(p.PieceId, p.Transform.RotationDegrees, p.PlacedLoop))
+        var dxfPieces = result.Placements
+            .Select(placement => ToDxfPiece(placement, pieces))
             .ToList();
 
-        var document = new NestingDxfDocument(material, pieces, BuildTitle(material, gapMm, result));
+        var document = new NestingDxfDocument(material, dxfPieces, BuildTitle(material, gapMm, result));
         await writer.WriteAsync(path, document, cancellationToken);
+    }
+
+    private static NestingDxfPiece ToDxfPiece(NestPlacement placement, IReadOnlyDictionary<string, PieceGeometry> pieces)
+    {
+        if (!pieces.TryGetValue(placement.PieceId, out var piece))
+            return new NestingDxfPiece(placement.PieceId, placement.Transform.RotationDegrees, placement.PlacedLoop, [], []);
+
+        var holes = piece.Holes.Select(placement.Transform.Apply).ToList();
+        var lines = piece.Lines.Select(placement.Transform.Apply).ToList();
+        return new NestingDxfPiece(placement.PieceId, placement.Transform.RotationDegrees, placement.PlacedLoop, holes, lines);
     }
 
     private static string BuildTitle(Loop2D material, double gapMm, NestResult result)

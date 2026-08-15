@@ -5,13 +5,16 @@ using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Infrastructure.Dxf;
 
-/// <summary>ASCII DXF writer for nesting results: LEATHER / PIECES / ANNOTATION layers
-/// with closed polylines and TEXT annotations, matching the reference demo output.</summary>
+/// <summary>ASCII DXF writer for nesting results: material + piece contours, color-coded by line role (62 = 0/3/5), plus TEXT annotations.</summary>
 public sealed class AsciiNestingDxfWriter : INestingDxfWriter
 {
     private const string LeatherLayer = "LEATHER";
     private const string PiecesLayer = "PIECES";
     private const string AnnotationLayer = "ANNOTATION";
+
+    private const int OutlineColor = 0;   // 外轮廓
+    private const int CutColor = 3;       // 切割线
+    private const int MarkColor = 5;      // 标记线
 
     public async Task WriteAsync(string path, NestingDxfDocument document, CancellationToken cancellationToken)
     {
@@ -21,14 +24,19 @@ public sealed class AsciiNestingDxfWriter : INestingDxfWriter
         sb.AppendLine("2");
         sb.AppendLine("ENTITIES");
 
-        WritePolyline(sb, document.Material, LeatherLayer);
+        WritePolyline(sb, document.Material.Curves, LeatherLayer, OutlineColor, closed: true);
 
         var labelHeight = Math.Max(8.0, Math.Min(MaterialWidth(document.Material), MaterialHeight(document.Material)) / 80.0);
 
         foreach (var piece in document.Pieces)
         {
-            WritePolyline(sb, piece.PlacedLoop, PiecesLayer);
-            var (cx, cy) = Centroid(piece.PlacedLoop);
+            WritePolyline(sb, piece.PlacedOuter.Curves, PiecesLayer, OutlineColor, closed: true);
+            foreach (var hole in piece.PlacedHoles)
+                WritePolyline(sb, hole.Curves, PiecesLayer, CutColor, closed: true);
+            foreach (var line in piece.PlacedLines)
+                WritePolyline(sb, line.Curves, PiecesLayer, line.Role == LineRole.Mark ? MarkColor : CutColor, closed: line.Role == LineRole.Mark);
+
+            var (cx, cy) = Centroid(piece.PlacedOuter);
             WriteText(sb, $"{piece.PieceId} {piece.RotationDegrees:g}°", cx, cy, labelHeight, AnnotationLayer);
         }
 
@@ -42,17 +50,19 @@ public sealed class AsciiNestingDxfWriter : INestingDxfWriter
         await File.WriteAllTextAsync(path, sb.ToString(), cancellationToken);
     }
 
-    private static void WritePolyline(StringBuilder sb, Loop2D loop, string layer)
+    private static void WritePolyline(StringBuilder sb, IReadOnlyList<Curve2D> curves, string layer, int color, bool closed)
     {
-        var points = Flatten(loop);
-        if (points.Count < 3)
+        var points = Flatten(curves);
+        if (points.Count < 2)
             return;
         sb.AppendLine("0");
         sb.AppendLine("LWPOLYLINE");
         sb.AppendLine("8");
         sb.AppendLine(layer);
+        sb.AppendLine("62");
+        sb.AppendLine(color.ToString(CultureInfo.InvariantCulture));
         sb.AppendLine("70");
-        sb.AppendLine("1"); // closed
+        sb.AppendLine(closed ? "1" : "0");
         sb.AppendLine("90");
         sb.AppendLine(points.Count.ToString(CultureInfo.InvariantCulture));
         foreach (var p in points)
@@ -80,9 +90,9 @@ public sealed class AsciiNestingDxfWriter : INestingDxfWriter
         sb.AppendLine(text);
     }
 
-    private static List<Point2D> Flatten(Loop2D loop)
+    private static List<Point2D> Flatten(IReadOnlyList<Curve2D> curves)
     {
-        var points = loop.Curves.SelectMany(c => c switch
+        var points = curves.SelectMany(c => c switch
         {
             LineSegment2D l => new[] { l.Start, l.End },
             Polyline2D p => p.Points,
@@ -111,7 +121,7 @@ public sealed class AsciiNestingDxfWriter : INestingDxfWriter
 
     private static (double X, double Y) Centroid(Loop2D loop)
     {
-        var points = Flatten(loop);
+        var points = Flatten(loop.Curves);
         if (points.Count == 0)
             return (0, 0);
         return (points.Average(p => p.X), points.Average(p => p.Y));

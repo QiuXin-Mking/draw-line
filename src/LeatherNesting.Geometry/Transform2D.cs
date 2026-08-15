@@ -52,7 +52,12 @@ public sealed record Transform2D
     public Loop2D Apply(Loop2D loop) =>
         new(loop.StableId, loop.Role, loop.Curves.Select(Apply).ToList());
 
-    private Curve2D Apply(Curve2D curve) => curve switch
+    /// <summary>Applies the transform to an internal line, preserving its identity and role.</summary>
+    public InternalLine Apply(InternalLine line) =>
+        new(line.Id, line.Role, line.Curves.Select(Apply).ToList());
+
+    /// <summary>Applies the transform to a single curve.</summary>
+    public Curve2D Apply(Curve2D curve) => curve switch
     {
         LineSegment2D line => new LineSegment2D(Apply(line.Start), Apply(line.End)),
         Polyline2D polyline => new Polyline2D(polyline.Points.Select(Apply).ToList()),

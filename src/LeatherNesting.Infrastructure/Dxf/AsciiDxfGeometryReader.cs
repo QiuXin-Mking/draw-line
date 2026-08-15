@@ -3,8 +3,8 @@ using LeatherNesting.Geometry;
 
 namespace LeatherNesting.Infrastructure.Dxf;
 
-/// <summary>Reads closed LWPOLYLINE and ARC entities back into Loop2D geometry,
-/// preserving bulge arcs as CircularArc2D (Stage 2 round-trip).</summary>
+/// <summary>Reads DXF entities back into geometry: closed LWPOLYLINE/ARC → Loop2D (round-trip),
+/// or color-coded closed/open polylines → PieceGeometry (nesting input).</summary>
 public sealed class AsciiDxfGeometryReader
 {
     public async Task<IReadOnlyList<Loop2D>> ReadAsync(string path, CancellationToken cancellationToken)
@@ -37,12 +37,114 @@ public sealed class AsciiDxfGeometryReader
         return loops;
     }
 
+    /// <summary>Reads a DXF into pieces: color 62 classifies line roles (0 outline / 3 cut / 5 mark),
+    /// closed polylines become outer/hole loops, open polylines become internal cut/mark lines.</summary>
+    public async Task<IReadOnlyList<PieceGeometry>> ReadPiecesAsync(string path, CancellationToken cancellationToken)
+    {
+        var lines = await File.ReadAllLinesAsync(path, cancellationToken);
+        if (lines.Length % 2 != 0) return [];
+
+        var groups = Enumerable.Range(0, lines.Length / 2)
+            .Select(i => new Group(lines[i * 2].Trim(), lines[i * 2 + 1].Trim()))
+            .ToList();
+
+        var outers = new List<Loop2D>();
+        var holes = new List<Loop2D>();
+        var cutLines = new List<InternalLine>();
+        var markLines = new List<InternalLine>();
+        var index = 0;
+
+        for (var i = 0; i < groups.Count; i++)
+        {
+            if (groups[i].Code != "0" || !groups[i].Value.Equals("LWPOLYLINE", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var raw = ReadPolylineRaw(groups, i + 1);
+            if (raw is null) continue;
+            var (curves, closed, color) = raw.Value;
+
+            if (closed)
+            {
+                var loop = new Loop2D($"loop-{index}", LoopRole.Outer, curves);
+                if (color == 3)
+                    holes.Add(new Loop2D($"loop-{index}", LoopRole.Hole, curves));
+                else if (color == 5)
+                    markLines.Add(new InternalLine($"line-{index}", LineRole.Mark, curves));
+                else
+                    outers.Add(loop);
+            }
+            else
+            {
+                var role = color == 5 ? LineRole.Mark : LineRole.Cut;
+                var line = new InternalLine($"line-{index}", role, curves);
+                if (role == LineRole.Mark) markLines.Add(line); else cutLines.Add(line);
+            }
+
+            index++;
+        }
+
+        return GroupIntoPieces(outers, holes, cutLines, markLines);
+    }
+
+    private static IReadOnlyList<PieceGeometry> GroupIntoPieces(
+        IReadOnlyList<Loop2D> outers,
+        IReadOnlyList<Loop2D> holes,
+        IReadOnlyList<InternalLine> cutLines,
+        IReadOnlyList<InternalLine> markLines)
+    {
+        var holesByOuter = outers.ToDictionary(o => o.StableId, _ => new List<Loop2D>());
+        var linesByOuter = outers.ToDictionary(o => o.StableId, _ => new List<InternalLine>());
+
+        foreach (var hole in holes)
+        {
+            var outer = FindContaining(outers, Centroid(hole));
+            if (outer is not null) holesByOuter[outer.StableId].Add(hole);
+        }
+
+        foreach (var line in cutLines.Concat(markLines))
+        {
+            var outer = FindContaining(outers, Centroid(line.Curves));
+            if (outer is not null) linesByOuter[outer.StableId].Add(line);
+        }
+
+        return outers
+            .Select(o => new PieceGeometry(o, holesByOuter[o.StableId], linesByOuter[o.StableId]))
+            .ToList();
+    }
+
+    private static Loop2D? FindContaining(IReadOnlyList<Loop2D> outers, Point2D point) =>
+        outers.Where(o => o.ContainsPoint(point)).OrderBy(o => o.Area).FirstOrDefault();
+
+    private static Point2D Centroid(Loop2D loop) => Centroid(loop.Curves);
+
+    private static Point2D Centroid(IReadOnlyList<Curve2D> curves)
+    {
+        var points = curves.SelectMany(c => c switch
+        {
+            LineSegment2D l => new[] { l.Start, l.End },
+            Polyline2D p => p.Points,
+            CircularArc2D a => new[] { a.StartPoint, a.EndPoint },
+            _ => Array.Empty<Point2D>()
+        }).ToList();
+        if (points.Count == 0) return Point2D.Origin;
+        return new Point2D(points.Average(p => p.X), points.Average(p => p.Y));
+    }
+
     private static Loop2D? ReadLwPolyline(IReadOnlyList<Group> groups, int start, int index)
+    {
+        var raw = ReadPolylineRaw(groups, start);
+        if (raw is null || !raw.Value.Closed || raw.Value.Curves.Count < 3)
+            return null;
+        return new Loop2D($"loop-{index + 1}", LoopRole.Outer, raw.Value.Curves.ToList());
+    }
+
+    private static (IReadOnlyList<Curve2D> Curves, bool Closed, int Color)? ReadPolylineRaw(IReadOnlyList<Group> groups, int start)
     {
         var end = FindEntityEnd(groups, start);
         var fields = groups.Skip(start).Take(end - start).ToList();
         var flags = ParseInt(fields.FirstOrDefault(g => g.Code == "70")?.Value);
-        if ((flags & 1) != 1) return null; // only closed polylines form piece outlines
+        var color = ParseInt(fields.FirstOrDefault(g => g.Code == "62")?.Value);
+        var closed = (flags & 1) == 1;
 
         var vertices = new List<(Point2D Point, double Bulge)>();
         for (var j = 0; j + 1 < fields.Count; j++)
@@ -54,13 +156,14 @@ public sealed class AsciiDxfGeometryReader
             if (j + 2 < fields.Count && fields[j + 2].Code == "42")
                 bulge = ParseDouble(fields[j + 2].Value);
             vertices.Add((new Point2D(x, y), bulge));
-            j++; // consume the 20
+            j++;
         }
 
-        if (vertices.Count < 3) return null;
+        if (vertices.Count < 2) return null;
 
-        var curves = new List<Curve2D>(vertices.Count);
-        for (var i = 0; i < vertices.Count; i++)
+        var curveCount = closed ? vertices.Count : vertices.Count - 1;
+        var curves = new List<Curve2D>(curveCount);
+        for (var i = 0; i < curveCount; i++)
         {
             var current = vertices[i];
             var next = vertices[(i + 1) % vertices.Count];
@@ -69,7 +172,7 @@ public sealed class AsciiDxfGeometryReader
                 : BulgeToArc(current.Point, next.Point, current.Bulge));
         }
 
-        return new Loop2D($"loop-{index + 1}", LoopRole.Outer, curves);
+        return (curves, closed, color);
     }
 
     private static Loop2D? ReadArc(IReadOnlyList<Group> groups, int start, int index)
@@ -104,7 +207,6 @@ public sealed class AsciiDxfGeometryReader
         var mid = new Point2D((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
         var dx = (p2.X - p1.X) / chord;
         var dy = (p2.Y - p1.Y) / chord;
-        // Perpendicular unit vector (CCW from chord direction).
         var centre = new Point2D(
             mid.X - dy * chord * (1 - bulge * bulge) / (4 * bulge),
             mid.Y + dx * chord * (1 - bulge * bulge) / (4 * bulge));
