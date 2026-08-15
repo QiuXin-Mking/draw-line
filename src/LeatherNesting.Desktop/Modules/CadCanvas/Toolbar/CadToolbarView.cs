@@ -17,6 +17,7 @@ public sealed class CadToolbarView : StackPanel
 {
     private const double ToolSize = 24;
     private const double DisabledOpacity = 0.55;
+    private const double EmphasizedBorderThickness = 2;
 
     private readonly Action<CadToolDefinition>? _onToolInvoked;
     private readonly IReadOnlyDictionary<CadToolCommandKey, Button> _buttonsByKey;
@@ -216,6 +217,7 @@ public sealed class CadToolbarView : StackPanel
         {
             button.Background = AppTheme.DisabledSurface;
             button.BorderBrush = AppTheme.ClassicBorderNeutral;
+            button.BorderThickness = new Thickness(1);
             button.Opacity = DisabledOpacity;
             return;
         }
@@ -227,6 +229,8 @@ public sealed class CadToolbarView : StackPanel
         button.BorderBrush = _activeKey == commandKey || button.IsKeyboardFocusWithin
             ? AppTheme.ClassicFocus
             : AppTheme.ClassicBorderNeutral;
+        button.BorderThickness = new Thickness(
+            _activeKey == commandKey || button.IsKeyboardFocusWithin ? EmphasizedBorderThickness : 1);
     }
 
     private static void EnsureKnownKeys(IEnumerable<CadToolCommandKey> keys)

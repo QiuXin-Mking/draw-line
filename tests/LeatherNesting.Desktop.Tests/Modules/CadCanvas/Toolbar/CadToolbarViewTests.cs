@@ -98,10 +98,13 @@ public sealed class CadToolbarViewTests
         Assert.Equal(visible, view.Buttons.Where(button => button.IsVisible).Select(CommandFor));
         Assert.Same(AppTheme.SelectionSurface, Button(view, CadToolCommandKey.Select).Background);
         Assert.Same(AppTheme.ClassicFocus, Button(view, CadToolCommandKey.Select).BorderBrush);
+        Assert.Equal(new Thickness(2), Button(view, CadToolCommandKey.Select).BorderThickness);
         Assert.Equal("当前工具", AutomationProperties.GetItemStatus(Button(view, CadToolCommandKey.Select)));
         Assert.Null(AutomationProperties.GetItemStatus(Button(view, CadToolCommandKey.Settings)));
         Assert.False(Button(view, CadToolCommandKey.Undo).IsEnabled);
         Assert.Same(AppTheme.DisabledSurface, Button(view, CadToolCommandKey.Undo).Background);
+        Assert.Equal(0.55, Button(view, CadToolCommandKey.Undo).Opacity);
+        Assert.Equal(new Thickness(1), Button(view, CadToolCommandKey.Undo).BorderThickness);
         Assert.True(Button(view, CadToolCommandKey.Settings).IsEnabled);
         Assert.Single(view.Separators, separator => separator.IsVisible);
 
