@@ -160,3 +160,26 @@ G 区画布坐标轴由固定左上角静态 TextBlock 改为自绘 CadOriginAxe
 ### Status
 
 [OK] **Completed**
+
+
+## Session 8: 快捷键真实绑定（§8.3 快捷键表）
+
+**Date**: 2026-08-15
+**Task**: 快捷键真实绑定（§8.3 快捷键表）
+**Branch**: `main`
+
+### Summary
+
+新增 CadShortcutCatalog（§8.3 全表单一事实源）与 CadShortcutRouter（KeyDown 匹配分发），CadWorkspaceHost 令画布可聚焦并转发 KeyDown：撤销/返回/取消/移动/旋转走工作台真实逻辑，其余经 ReportUnsupported 诚实 TODO。新增 KEY-001..005，全量 386 测试通过；沉淀 Avalonia Key 枚举命名差异。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `90efd44` | (see git log) |
+| `c946ad8` | (see git log) |
+| `614e52d` | (see git log) |
+
+### Status
+
+[OK] **Completed**
