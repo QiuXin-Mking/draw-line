@@ -17,6 +17,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
 | [Geometry & Nesting](./geometry-nesting.md) | Clipper2 boolean collision, Loop↔Path64 bridge, gap/nesting conventions | Done |
 | [DXF I/O](./dxf-io.md) | DXF reader/writer layering, nesting export, round-trip verification | Done |
+| [Project Persistence](./persistence.md) | NestingProject aggregate, geometry JSON serialization, crash-safe write | Done |
 | [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | To fill |
 | [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
