@@ -13,6 +13,9 @@ TestResults/
 # Generated demo output (large DXF/PNG artifacts).
 demo_output/
 
+# Python demo virtualenv.
+.venv/
+
 # Screenshots and archives.
 截屏*.png
 *.rar

@@ -24,12 +24,15 @@
 - **利用率计算**：统计皮革面积利用率，评估排样效果
 - **DXF 输出**：将排样结果导出为 DXF 图表，可直接用于生产
 
-## 仓库文件说明
+## 仓库结构
 
-| 文件 | 说明 |
+| 路径 | 说明 |
 |------|------|
-| `凉鞋(2).dxf` / `凉鞋(3).dxf` | 凉鞋裁片的 CAD 轮廓文件（输入样例） |
-| `划线(2).rar` / `划线(3).rar` | 对应的划线排样结果（参考输出） |
+| `src/` | C# 正式产品（分层：Domain / Geometry / Application / Infrastructure / Desktop） |
+| `tests/` | 与 `src/` 1:1 的测试镜像 |
+| `python-demo/` | Python 排样展示 Demo（对外演示，见「可运行 Demo」） |
+| `docs/` | ADR（`docs/adr/`）、待办（`docs/todo/`）、架构治理文档 |
+| `凉鞋.dxf` | 凉鞋裁片输入样例（C# 测试 fixture 与 Python demo 共用） |
 
 ## 技术路线（待定）
 
@@ -44,25 +47,17 @@
 
 🚧 项目初期，正在规划和原型阶段。
 
-## 可运行 Demo
+## 可运行 Demo（Python 展示版）
 
-当前 Demo 将 `凉鞋.dxf` 的 9 个尺码视为可重复供料，按毫米处理坐标，交替使用 0°/180°，直到皮革无法再容纳下一件鞋面。输出会报告各尺码的实际放入数量和利用率。
+Python 排样 Demo 已独立到 [`python-demo/`](./python-demo/)，用于**对外展示**算法效果（读 DXF → 排样 → 输出 DXF/PNG/利用率）。
 
 ```bash
-python3 leather_nesting_demo.py \
-  --input 凉鞋.dxf \
-  --output-dir demo_output \
-  --gap-mm 5 \
-  --leather 2000x1000 2000x4000 2000x9000
+cd python-demo && ./run.sh
 ```
 
-结果会写入 `demo_output/`：
+一键生成三种皮革尺寸的排样 DXF/PNG 与利用率汇总，并展示自由角度（0° + 175°）排样效果。详见 [`python-demo/README.md`](./python-demo/README.md)。
 
-- `2000x1000.dxf`、`2000x4000.dxf`、`2000x9000.dxf`：可用 CAD 打开的排样文件；
-- 同名 `.png`：用于现场演示的排样预览；
-- `summary.json`：每种皮革的已放入裁片、未放入裁片和利用率。
-
-首版默认裁片与皮革边缘均保持 5 mm 间隙。它是确定性货架填充 Demo，不保证全局最优；可用 `--single-set` 回到每个尺码只放一件的展示模式。尚未包含订单数量配比、90°旋转、镜像、纹路、瑕疵区、完整工艺线与切割设备对接。
+> 注意：这是演示用的确定性货架填充 Demo，不保证全局最优。正式产品为 C# 排样引擎（`src/LeatherNesting.Geometry/Nesting/`，NFP + 局部搜索，支持任意角度）。Python Demo 仅作展示，不再作为算法参照演进。
 
 ## 参考资料
 
