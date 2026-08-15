@@ -87,12 +87,16 @@ public sealed class AppShellViewModel
     public void ActivateMenuCommand(ShellMenuCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        var module = Modules.SingleOrDefault(candidate =>
-            StringComparer.Ordinal.Equals(candidate.Id, command.TargetModuleId));
-        if (module is null)
-            throw new InvalidOperationException($"Menu command '{command.Label}' targets missing module '{command.TargetModuleId}'.");
+        if (command.NavigateToModule)
+        {
+            var module = Modules.SingleOrDefault(candidate =>
+                StringComparer.Ordinal.Equals(candidate.Id, command.TargetModuleId));
+            if (module is null)
+                throw new InvalidOperationException($"Menu command '{command.Label}' targets missing module '{command.TargetModuleId}'.");
 
-        Select(module);
+            Select(module);
+        }
+
         if (command.IsPlaceholderAction)
             ShowTodo(command.Label);
     }

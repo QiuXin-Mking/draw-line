@@ -86,6 +86,33 @@ public static class ShellTopMenu
             new ShellMenuCommand("串口工具", "M03", true),
         });
 
+    /// <summary>「设置」下拉菜单：范围缩放/窗口/参数类设置；「语言」为带子菜单的选择项（中文/英文）。</summary>
+    public static IReadOnlyList<ShellMenuEntry> SettingsMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("范围缩放", "M03", true),
+            new ShellMenuCommand("订单窗口", "M01", true),
+            new ShellMenuCommand("设置窗口", "M12", true),
+            new ShellMenuCommand("排样设置", "M08", true),
+            new ShellMenuCommand("发送设置", "M11", true),
+            new ShellMenuCommand("导入参数", "M02", true),
+            new ShellMenuCommand("导出参数", "M11", true),
+            new ShellMenuSubmenu("语言", new ShellMenuEntry[]
+            {
+                new ShellMenuCommand("中文", "M03", true, NavigateToModule: false),
+                new ShellMenuCommand("英文", "M03", true, NavigateToModule: false),
+            }),
+        });
+
+    /// <summary>「帮助」下拉菜单：系统/授权/关于，均为占位，路由兜底到 M12（管理）。</summary>
+    public static IReadOnlyList<ShellMenuEntry> HelpMenu { get; } = Array.AsReadOnly(
+        new ShellMenuEntry[]
+        {
+            new ShellMenuCommand("系统配置", "M12", true),
+            new ShellMenuCommand("软件授权", "M12", true),
+            new ShellMenuCommand("关于...", "M12", true),
+        });
+
     /// <summary>返回指定顶级菜单的内容；未实现的菜单返回 null（渲染为占位）。</summary>
     public static IReadOnlyList<ShellMenuEntry>? EntriesFor(string label) =>
         StringComparer.Ordinal.Equals(label, "文件") ? FileMenu :
@@ -94,19 +121,26 @@ public static class ShellTopMenu
         StringComparer.Ordinal.Equals(label, "绘制") ? DrawMenu :
         StringComparer.Ordinal.Equals(label, "数据库") ? DatabaseMenu :
         StringComparer.Ordinal.Equals(label, "工具") ? ToolsMenu :
+        StringComparer.Ordinal.Equals(label, "设置") ? SettingsMenu :
+        StringComparer.Ordinal.Equals(label, "帮助") ? HelpMenu :
         null;
 }
 
-/// <summary>顶级菜单条目：命令或分隔线。</summary>
+/// <summary>顶级菜单条目：命令、分隔线或子菜单。</summary>
 public abstract record ShellMenuEntry;
 
 public sealed record ShellMenuCommand(
     string Label,
     string TargetModuleId,
     bool IsPlaceholderAction,
-    bool IsEnabled = true) : ShellMenuEntry;
+    bool IsEnabled = true,
+    bool NavigateToModule = true) : ShellMenuEntry;
 
 public sealed record ShellMenuSeparator : ShellMenuEntry;
+
+public sealed record ShellMenuSubmenu(
+    string Label,
+    IReadOnlyList<ShellMenuEntry> Children) : ShellMenuEntry;
 
 public sealed record ShellToolbarCommand(
     string Label,

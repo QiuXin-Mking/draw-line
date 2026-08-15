@@ -150,6 +150,7 @@ public sealed class TopCommandArea : Border
     {
         ShellMenuCommand command => CreateCommandItem(command),
         ShellMenuSeparator => new Separator(),
+        ShellMenuSubmenu submenu => CreateSubmenuItem(submenu),
         _ => throw new ArgumentOutOfRangeException(nameof(entry)),
     };
 
@@ -162,6 +163,17 @@ public sealed class TopCommandArea : Border
             IsEnabled = command.IsEnabled,
         };
         item.Click += (_, _) => _activateMenu(command);
+        return item;
+    }
+
+    private MenuItem CreateSubmenuItem(ShellMenuSubmenu submenu)
+    {
+        var item = new MenuItem
+        {
+            Header = submenu.Label,
+            Foreground = AppTheme.PrimaryText,
+        };
+        item.ItemsSource = submenu.Children.Select(CreateMenuEntry).ToArray();
         return item;
     }
 }

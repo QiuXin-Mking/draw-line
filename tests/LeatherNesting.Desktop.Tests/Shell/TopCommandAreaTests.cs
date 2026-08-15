@@ -97,15 +97,27 @@ public sealed class TopCommandAreaTests
             ShellTopMenu.ToolsMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
             toolsMenu.Items.OfType<MenuItem>().Select(item => item.Header));
 
-        Assert.All(
-            area.MenuItems.Where(item => !Equals(item.Header, "文件") && !Equals(item.Header, "编辑")
-                && !Equals(item.Header, "操作") && !Equals(item.Header, "绘制")
-                && !Equals(item.Header, "数据库") && !Equals(item.Header, "工具")),
-            item =>
+        var settingsMenu = area.MenuItems.Single(item => Equals(item.Header, "设置"));
+        Assert.Equal(
+            ShellTopMenu.SettingsMenu.Select(entry => entry switch
             {
-                var placeholder = Assert.Single(item.Items.Cast<object>());
-                Assert.Equal(ShellTopMenu.PlaceholderText, Assert.IsType<MenuItem>(placeholder).Header);
-            });
+                ShellMenuCommand command => command.Label,
+                ShellMenuSubmenu submenu => submenu.Label,
+                _ => string.Empty,
+            }).ToArray(),
+            settingsMenu.Items.OfType<MenuItem>().Select(item => item.Header).ToArray());
+
+        var languageSubmenu = settingsMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "语言"));
+        Assert.Equal(
+            new[] { "中文", "英文" },
+            languageSubmenu.Items.OfType<MenuItem>().Select(item => item.Header).ToArray());
+
+        var helpMenu = area.MenuItems.Single(item => Equals(item.Header, "帮助"));
+        Assert.Equal(
+            ShellTopMenu.HelpMenu.OfType<ShellMenuCommand>().Select(command => command.Label).ToArray(),
+            helpMenu.Items.OfType<MenuItem>().Select(item => item.Header));
+        Assert.Empty(helpMenu.Items.OfType<Separator>());
+        Assert.All(helpMenu.Items.OfType<MenuItem>(), item => Assert.True(item.IsEnabled));
         Assert.Equal(ExpectedToolbarLabels, area.CommandButtons.Select(button => button.Descriptor.Label));
         Assert.All(area.CommandButtons, button =>
         {
@@ -302,6 +314,72 @@ public sealed class TopCommandAreaTests
         cadTools.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Assert.Equal("M02", viewModel.CurrentModule!.Id);
         Assert.Contains("CAD工具", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-012")]
+    public void Settings_menu_navigates_commands_but_language_choices_stay_placeholder_only()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M07", 7),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var settingsMenu = area.MenuItems.Single(item => Equals(item.Header, "设置"));
+        var zoomExtent = settingsMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "范围缩放"));
+        zoomExtent.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M03", viewModel.CurrentModule!.Id);
+        Assert.Contains("范围缩放", workspace.Snapshot.TodoHint);
+
+        var settingsWindow = settingsMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "设置窗口"));
+        settingsWindow.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M12", viewModel.CurrentModule!.Id);
+        Assert.Contains("设置窗口", workspace.Snapshot.TodoHint);
+
+        var languageSubmenu = settingsMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "语言"));
+        var chinese = languageSubmenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "中文"));
+        chinese.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Contains("中文", workspace.Snapshot.TodoHint);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-013")]
+    public void Help_menu_commands_navigate_to_the_management_module()
+    {
+        var workspace = new InMemoryWorkspaceSession();
+        var viewModel = new AppShellViewModel(
+            [
+                new TestModule("M01", 1),
+                new TestModule("M02", 2),
+                new TestModule("M03", 3),
+                new TestModule("M05", 5),
+                new TestModule("M07", 7),
+                new TestModule("M08", 8),
+                new TestModule("M11", 11),
+                new TestModule("M12", 12),
+            ],
+            workspace,
+            workspace);
+        var area = new TopCommandArea(viewModel.ActivateToolbarCommand, viewModel.ActivateMenuCommand);
+
+        var helpMenu = area.MenuItems.Single(item => Equals(item.Header, "帮助"));
+        var about = helpMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, "关于..."));
+        about.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.Equal("M12", viewModel.CurrentModule!.Id);
+        Assert.Contains("关于", workspace.Snapshot.TodoHint);
     }
 
     [Fact]
