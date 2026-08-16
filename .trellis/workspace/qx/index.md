@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 9
-- **Last Active**: 2026-08-16
+- **Total Sessions**: 10
+- **Last Active**: 2026-08-17
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~212 | Active |
+| `journal-1.md` | ~238 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 10 | 2026-08-17 | 版型设置确认流程 + 订单折叠卡片 + 关联文档 | `e32f551`, `c4af231`, `63d690c`, `bab1754`, `90d903b`, `84afd58` | `main` |
 | 9 | 2026-08-16 | 新建排版弹出「版型设置」对话框 | `99dddf6`, `2d15ba3`, `8b3ffa0` | `main` |
 | 8 | 2026-08-15 | 快捷键真实绑定（§8.3 快捷键表） | `90efd44`, `c946ad8`, `614e52d` | `main` |
 | 7 | 2026-08-15 | CAD 坐标轴固定在模型原点（带箭头） | `588f8ba`, `8d9ddb7` | `main` |

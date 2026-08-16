@@ -210,3 +210,29 @@ G 区画布坐标轴由固定左上角静态 TextBlock 改为自绘 CadOriginAxe
 ### Status
 
 [OK] **Completed**
+
+
+## Session 10: 版型设置确认流程 + 订单折叠卡片 + 关联文档
+
+**Date**: 2026-08-17
+**Task**: 版型设置确认流程 + 订单折叠卡片 + 关联文档
+**Branch**: `main`
+
+### Summary
+
+版型设置对话框扩展为带校验的确认流程（BoardSettingsViewModel + 确定/取消 + 字段错误提示），订单组多订单折叠卡片；新增系统架构图、排样算法 ADR（C# 托管 vs C++ 下沉）、菜单栏工具栏命令接线待办清单、版型设置关联功能笔记；08-13 材料嵌套设置任务规划工件。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e32f551` | (see git log) |
+| `c4af231` | (see git log) |
+| `63d690c` | (see git log) |
+| `bab1754` | (see git log) |
+| `90d903b` | (see git log) |
+| `84afd58` | (see git log) |
+
+### Status
+
+[OK] **Completed**
