@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
-- **Last Active**: 2026-08-15
+- **Total Sessions**: 9
+- **Last Active**: 2026-08-16
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~185 | Active |
+| `journal-1.md` | ~212 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-08-16 | 新建排版弹出「版型设置」对话框 | `99dddf6`, `2d15ba3`, `8b3ffa0` | `main` |
 | 8 | 2026-08-15 | 快捷键真实绑定（§8.3 快捷键表） | `90efd44`, `c946ad8`, `614e52d` | `main` |
 | 7 | 2026-08-15 | CAD 坐标轴固定在模型原点（带箭头） | `588f8ba`, `8d9ddb7` | `main` |
 | 6 | 2026-08-15 | CAD 交互功能：动态标尺 + 坐标提示 + 缩放联动 | `7e465b4`, `f72f949`, `801e8e4` | `main` |

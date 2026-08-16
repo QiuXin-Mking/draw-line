@@ -183,3 +183,30 @@ G 区画布坐标轴由固定左上角静态 TextBlock 改为自绘 CadOriginAxe
 ### Status
 
 [OK] **Completed**
+
+
+## Session 9: 新建排版弹出「版型设置」对话框
+
+**Date**: 2026-08-16
+**Task**: 新建排版弹出「版型设置」对话框
+**Branch**: `main`
+
+### Summary
+
+新增 BoardSettingsWindow/View 模态对话框（8 字段 + 确定按钮默认焦点），Shell 命令经 ShellCommandLaunch 枚举 + BoardSettingsRequested 事件路由到弹窗；更新 TOP-008、新增 BOARD 测试并补充 spec。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `99dddf6` | (see git log) |
+| `2d15ba3` | (see git log) |
+| `8b3ffa0` | (see git log) |
+
+### Testing
+
+- [OK] dotnet build 0 警告 0 错误；Desktop.Tests 277 通过
+
+### Status
+
+[OK] **Completed**
