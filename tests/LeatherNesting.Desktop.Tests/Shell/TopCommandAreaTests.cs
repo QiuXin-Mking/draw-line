@@ -185,7 +185,7 @@ public sealed class TopCommandAreaTests
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "TOP-008")]
-    public void File_menu_commands_navigate_through_the_shell_and_stay_honest_placeholders()
+    public void File_menu_import_stays_placeholder_and_new_layout_opens_board_settings()
     {
         var workspace = new InMemoryWorkspaceSession();
         var viewModel = new AppShellViewModel(
@@ -211,9 +211,12 @@ public sealed class TopCommandAreaTests
 
         var newLayout = fileMenu.Items.Cast<MenuItem>()
             .Single(item => Equals(item.Header, "新建排版"));
+        var boardSettingsRequested = false;
+        viewModel.BoardSettingsRequested += (_, _) => boardSettingsRequested = true;
         newLayout.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-        Assert.Equal("M01", viewModel.CurrentModule!.Id);
-        Assert.Contains("新建排版", workspace.Snapshot.TodoHint);
+        Assert.True(boardSettingsRequested);
+        Assert.Equal("M02", viewModel.CurrentModule!.Id);
+        Assert.DoesNotContain("新建排版", workspace.Snapshot.TodoHint);
     }
 
     [Fact]
