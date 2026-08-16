@@ -57,6 +57,9 @@ public sealed class AppShellViewModel
 
     public event EventHandler<WorkspaceSnapshot>? SnapshotChanged;
 
+    /// <summary>「新建排版」请求打开版型设置对话框；由 View 层负责弹窗（需 Window owner）。</summary>
+    public event EventHandler? BoardSettingsRequested;
+
     public void Select(ModuleDescriptor module)
     {
         ArgumentNullException.ThrowIfNull(module);
@@ -74,6 +77,12 @@ public sealed class AppShellViewModel
     public void ActivateToolbarCommand(ShellToolbarCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
+        if (command.Launch == ShellCommandLaunch.NewBoardSettings)
+        {
+            BoardSettingsRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
         var module = Modules.SingleOrDefault(candidate =>
             StringComparer.Ordinal.Equals(candidate.Id, command.TargetModuleId));
         if (module is null)
@@ -87,6 +96,12 @@ public sealed class AppShellViewModel
     public void ActivateMenuCommand(ShellMenuCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
+        if (command.Launch == ShellCommandLaunch.NewBoardSettings)
+        {
+            BoardSettingsRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
         if (command.NavigateToModule)
         {
             var module = Modules.SingleOrDefault(candidate =>

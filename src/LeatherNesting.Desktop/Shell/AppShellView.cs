@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using LeatherNesting.Desktop.Composition;
 using LeatherNesting.Desktop.DesignSystem;
+using LeatherNesting.Desktop.Modules.BoardSettings;
 using LeatherNesting.Desktop.Modules.Pieces;
 using LeatherNesting.Desktop.Views;
 using LeatherNesting.Desktop.Workspace;
@@ -81,6 +82,7 @@ public sealed class AppShellView : UserControl
         Content = BuildLayout();
 
         _viewModel.SnapshotChanged += (_, snapshot) => RefreshSnapshot(snapshot);
+        _viewModel.BoardSettingsRequested += (_, _) => OpenBoardSettings();
         _viewModel.CadHost.Changed += (_, _) =>
         {
             if (_viewModel.CurrentModule?.Id == "M02" && _viewModel.CadHost.Loops.Count > 0)
@@ -223,6 +225,12 @@ public sealed class AppShellView : UserControl
     private void OpenImportModule()
     {
         ShowModule(_viewModel.Modules.Single(module => module.Id == "M02"));
+    }
+
+    private async void OpenBoardSettings()
+    {
+        if (TopLevel.GetTopLevel(this) is Window owner)
+            await new BoardSettingsWindow().ShowDialog(owner);
     }
 
     private void RefreshSnapshot(WorkspaceSnapshot snapshot)

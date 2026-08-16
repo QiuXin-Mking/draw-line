@@ -14,7 +14,7 @@ public static class ShellTopMenu
     public static IReadOnlyList<ShellMenuEntry> FileMenu { get; } = Array.AsReadOnly(
         new ShellMenuEntry[]
         {
-            new ShellMenuCommand("新建排版", "M01", true),
+            new ShellMenuCommand("新建排版", "M01", false, Launch: ShellCommandLaunch.NewBoardSettings),
             new ShellMenuCommand("导入排版进度(axn)", "M02", true),
             new ShellMenuCommand("导出排版进度(axn)", "M11", true),
             new ShellMenuCommand("恢复数据", "M12", true),
@@ -161,12 +161,20 @@ public static class ShellContextMenu
 /// <summary>顶级菜单条目：命令、分隔线或子菜单。</summary>
 public abstract record ShellMenuEntry;
 
+/// <summary>shell 命令的落点：导航到模块，或打开独立对话框。</summary>
+public enum ShellCommandLaunch
+{
+    Module,
+    NewBoardSettings,
+}
+
 public sealed record ShellMenuCommand(
     string Label,
     string TargetModuleId,
     bool IsPlaceholderAction,
     bool IsEnabled = true,
-    bool NavigateToModule = true) : ShellMenuEntry;
+    bool NavigateToModule = true,
+    ShellCommandLaunch Launch = ShellCommandLaunch.Module) : ShellMenuEntry;
 
 public sealed record ShellMenuSeparator : ShellMenuEntry;
 
@@ -178,7 +186,8 @@ public sealed record ShellToolbarCommand(
     string Label,
     ToolbarIconKey Icon,
     string TargetModuleId,
-    bool IsPlaceholderAction);
+    bool IsPlaceholderAction,
+    ShellCommandLaunch Launch = ShellCommandLaunch.Module);
 
 /// <summary>Single source of truth for the icon toolbar order and shell navigation routes.</summary>
 public static class ShellToolbar
@@ -186,7 +195,7 @@ public static class ShellToolbar
     public static IReadOnlyList<ShellToolbarCommand> Commands { get; } = Array.AsReadOnly(
         new[]
         {
-            new ShellToolbarCommand("新建排版", ToolbarIconKey.NewLayout, "M01", true),
+            new ShellToolbarCommand("新建排版", ToolbarIconKey.NewLayout, "M01", false, Launch: ShellCommandLaunch.NewBoardSettings),
             new ShellToolbarCommand("订单管理", ToolbarIconKey.OrderManagement, "M01", false),
             new ShellToolbarCommand("CAD工具", ToolbarIconKey.CadTools, "M02", false),
             new ShellToolbarCommand("开始排版", ToolbarIconKey.StartNesting, "M08", true),
