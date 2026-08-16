@@ -1,34 +1,25 @@
-# 实施：版型设置弹窗（新建排版入口）
+# 实施：版型设置弹窗（新建排版入口）— 已执行记录
 
-## 顺序与检查点
+## 结果（2026-08-16 完成，并入 BoardSettings）
 
-1. **纯逻辑层**：新增 `Modules/LayoutSetup/LayoutSetupConfig.cs`（`LayoutDirection`、`LayoutSetupConfig`、`LayoutSetupStore`）。
-   - 检查点：编译通过。
-2. **表单模型 + 单测**：新增 `LayoutSetupViewModel.cs` 与 `LayoutSetupViewModelTests.cs`。
-   - 检查点：`dotnet test tests/LeatherNesting.Desktop.Tests` 绿。
-3. **视图 + 窗口**：新增 `LayoutSetupView.cs`、`LayoutSetupWindow.cs`（含表单 UI 断言测试）。
-   - 检查点：编译通过，表单断言测试绿。
-4. **菜单契约**：改 `ShellTopMenu.cs`（`NewLayoutLabel` 常量；「新建排版」`NavigateToModule:false, IsPlaceholderAction:false`），同步更新 `TopCommandAreaTests` TOP-008 并新增契约断言。
-   - 检查点：`dotnet test tests/LeatherNesting.Desktop.Tests` 绿。
-5. **Shell 拦截**：改 `AppShellView.cs`（`TryOpenNewLayout` + `OpenLayoutSetupDialogAsync` + 确认回写 Store/状态栏）。
-   - 检查点：编译通过。
-6. **全量验证**：桌面测试、全解决方案测试、`dotnet build LeatherNesting.sln`、`git diff --check`。
-7. **收尾**：更新 spec（如需要）、提交（workflow 3.4）。
+并行已存在 `Modules/BoardSettings` + `Launch` 机制，本切片在其上完成规格升级：
 
-## 验证命令
+1. **新增** `BoardSettingsConfig.cs` — `BoardDirection`、`BoardSettingsConfig`（Default=1360.00/0.00/6/补齐/0.00/2.00）、`BoardSettingsStore`。
+2. **新增** `BoardSettingsViewModel.cs` — 表单模型 + 校验（宽度/长度/边缘/间距非负、层数正整数阿拉伯数字、补齐/丢弃选项）。
+3. **重写** `BoardSettingsView.cs` — 5 行布局（名称 / 方向 / 宽+长 / 层数+余片下拉 / 边缘+间距）、确定/取消、字段级错误、层数 Tunnel 数字过滤；`BoardSettingsWindow` 确定→TryConfirm+Close(true)、取消→Close(false)。
+4. **改** `AppShellView.cs` — `OpenBoardSettings` 确定后 `BoardSettingsStore.Default.Confirm(config)` + 状态栏 `StatusDemoText` 更新摘要。
+5. **删** 我建的 `Modules/LayoutSetup/` 对照模块；撤掉多余 `NewLayoutLabel` 常量。
+6. **测试** — 新增 `BoardSettingsViewModelTests`（13 例）；更新 `BoardSettingsViewTests`（BOARD-001 默认值改为确认规格、BOARD-004 下拉、BOARD-005 取消按钮、BOARD-006 数字过滤）；`TopCommandAreaTests` TOP-008 并行已更新。
+
+## 验证命令（全部通过）
 
 ```bash
-dotnet build LeatherNesting.sln
-dotnet test tests/LeatherNesting.Desktop.Tests
-dotnet test LeatherNesting.sln
-git diff --check
+dotnet build LeatherNesting.sln                       # 0 警告 0 错误
+dotnet test LeatherNesting.sln                        # 全部通过（Desktop 290）
+git diff --check                                      # 通过
 ```
 
-## 回滚点
+## 说明
 
-- 步骤 4 的菜单契约改动若与既有测试冲突：先回退 `ShellTopMenu.cs` 改动，仅保留拦截层，确认契约测试再改回。
-- 每步结束编译/测试通过后才进入下一步；若某步失败，修复后从该步重跑。
-
-## 评审门
-
-- 实现前须经本文件与 design.md 评审（workflow 1.4），`task.py start` 后进入 Phase 2。
+- 层数数字过滤原用 `RaiseEvent(TextInputEvent)` 测试，因 TextBox 自身消费事件不可靠，改为 Tunnel 订阅 + 谓词 `IsArabicDigitText` 直接测试。
+- 未提交（并行用户侧在工作区动态提交，提交由用户侧负责）。

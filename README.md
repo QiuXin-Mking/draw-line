@@ -31,7 +31,7 @@
 | `src/` | C# 正式产品（分层：Domain / Geometry / Application / Infrastructure / Desktop） |
 | `tests/` | 与 `src/` 1:1 的测试镜像 |
 | `python-demo/` | Python 排样展示 Demo（对外演示，见「可运行 Demo」） |
-| `docs/` | ADR（`docs/adr/`）、待办（`docs/todo/`）、架构治理文档 |
+| `docs/` | ADR（`docs/adr/`）、待办（`docs/todo/`）、[系统架构图](docs/architecture.md)、[架构治理文档](docs/architecture-and-governance.md) |
 | `凉鞋.dxf` | 凉鞋裁片输入样例（C# 测试 fixture 与 Python demo 共用） |
 
 ## 技术路线（待定）
