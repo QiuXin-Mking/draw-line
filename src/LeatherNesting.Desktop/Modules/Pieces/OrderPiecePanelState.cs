@@ -3,19 +3,25 @@ namespace LeatherNesting.Desktop.Modules.Pieces;
 /// <summary>One shared, deterministic UI record set for the image 27 shell and image 13 editor.</summary>
 public sealed class OrderPiecePanelState
 {
-    private readonly List<OrderPieceRecord> _pieces;
+    private readonly List<OrderRecord> _orders;
 
-    private OrderPiecePanelState(List<OrderPieceRecord> pieces) => _pieces = pieces;
+    private OrderPiecePanelState(List<OrderRecord> orders)
+    {
+        _orders = orders;
+        SelectedOrder = orders[0];
+    }
 
     public event EventHandler? Changed;
 
-    public string OrderName { get; } = "贴皮测试（皮）";
-    public string GroupName { get; } = "40";
-    public string ChannelSummary { get; } = "P_00030; ch 0";
-    public int GroupPieceCount => _pieces.Count;
-    public IReadOnlyList<OrderPieceRecord> Pieces => _pieces;
-    public int GroupPlacedQuantity { get; } = 900;
-    public int GroupTotalQuantity => _pieces.Sum(piece => piece.TotalQuantity);
+    public IReadOnlyList<OrderRecord> Orders => _orders;
+    public OrderRecord SelectedOrder { get; private set; }
+    public int OrderCount => _orders.Count;
+
+    public IReadOnlyList<OrderPieceRecord> Pieces => SelectedOrder.Pieces;
+    public string ChannelSummary => SelectedOrder.ChannelSummary;
+    public int GroupPieceCount => SelectedOrder.PieceCount;
+    public int GroupPlacedQuantity => SelectedOrder.PlacedQuantity;
+    public int GroupTotalQuantity => SelectedOrder.TotalQuantity;
     public string GroupCountSummary => $"{GroupPlacedQuantity}/{GroupTotalQuantity}";
     public string GroupAreaSummary { get; } = "5.56/6.39(m²)";
     public string GroupProgress { get; } = "13.07%";
@@ -29,9 +35,36 @@ public sealed class OrderPiecePanelState
     {
         string[] dimensions = ["205*110", "173*129", "77*169", "172*75", "104*70", "104*96", "99*39", "48*118", "120*104", "68*18"];
         double[] areas = [0.1649, 0.0899, 0.0794, 0.0783, 0.0735, 0.0666, 0.0418, 0.0412, 0.0391, 0.0133];
-        var pieces = dimensions.Select((dimensionsValue, index) => new OrderPieceRecord(
+        var order1 = dimensions.Select((dimensionsValue, index) => new OrderPieceRecord(
             index + 1, "40", dimensionsValue, "任意角度", "0 | 排完", 1, 1, 100, 100, areas[index])).ToList();
-        return new OrderPiecePanelState(pieces);
+
+        var order2 = new List<OrderPieceRecord>
+        {
+            new(1, "39", "210*115", "任意角度", "0 | 排完", 1, 1, 80, 80, 0.1702),
+            new(2, "39", "178*132", "任意角度", "0 | 排完", 1, 1, 80, 80, 0.0941),
+            new(3, "39", "80*172", "任意角度", "0 | 排完", 1, 1, 80, 80, 0.0822),
+        };
+
+        var order3 = new List<OrderPieceRecord>
+        {
+            new(1, "38", "176*78", "任意角度", "0 | 排完", 1, 1, 60, 60, 0.0804),
+            new(2, "38", "108*72", "任意角度", "0 | 排完", 1, 1, 60, 60, 0.0766),
+        };
+
+        var orders = new List<OrderRecord>
+        {
+            new("贴皮测试（皮）", "P_00030; ch 0", 900, order1),
+            new("鞋面-39 订单", "P_00031; ch 1", 240, order2),
+            new("鞋面-38 订单", "P_00032; ch 2", 120, order3),
+        };
+        return new OrderPiecePanelState(orders);
+    }
+
+    public void SelectOrder(OrderRecord order)
+    {
+        if (ReferenceEquals(SelectedOrder, order)) return;
+        SelectedOrder = order;
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void UpdateQuantities(int index, int singleSetQuantity, int setCount, int remainderQuantity)
@@ -53,7 +86,7 @@ public sealed class OrderPiecePanelState
 
     public void LoadImage13PropertyDemo()
     {
-        foreach (var piece in _pieces)
+        foreach (var piece in SelectedOrder.Pieces)
         {
             piece.IsIncluded = true;
             piece.FineRotation = 30.0;
@@ -68,7 +101,27 @@ public sealed class OrderPiecePanelState
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private OrderPieceRecord Find(int index) => _pieces.Single(piece => piece.Index == index);
+    private OrderPieceRecord Find(int index) => SelectedOrder.Pieces.Single(piece => piece.Index == index);
+}
+
+/// <summary>One order (订单) with its own independent pieces. 排版是排版，订单是订单。</summary>
+public sealed class OrderRecord
+{
+    public OrderRecord(string name, string channelSummary, int placedQuantity, IEnumerable<OrderPieceRecord> pieces)
+    {
+        Name = name;
+        ChannelSummary = channelSummary;
+        PlacedQuantity = placedQuantity;
+        Pieces = pieces.ToList();
+    }
+
+    public string Name { get; }
+    public string ChannelSummary { get; }
+    public int PlacedQuantity { get; }
+    public List<OrderPieceRecord> Pieces { get; }
+    public int PieceCount => Pieces.Count;
+    public int TotalQuantity => Pieces.Sum(piece => piece.TotalQuantity);
+    public double Area => Pieces.Sum(piece => piece.Area);
 }
 
 public sealed class OrderPieceRecord(

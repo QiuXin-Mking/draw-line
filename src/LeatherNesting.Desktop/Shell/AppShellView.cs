@@ -39,7 +39,7 @@ public sealed class AppShellView : UserControl
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         OrderPieceState = orderPieceState ?? throw new ArgumentNullException(nameof(orderPieceState));
 
-        OrderGroupHost = new ClassicPaneHost("订单 / 排版组", new OrderGroupPanelView(OrderPieceState));
+        OrderGroupHost = new ClassicPaneHost("订单组", new OrderGroupPanelView(OrderPieceState));
         PieceListHost = new ClassicPaneHost("裁片列表 · DEMO", new PieceCardListView(OrderPieceState));
         ProgressSummaryHost = new ClassicPaneHost("进度汇总 · DEMO", new ProgressSummaryView(OrderPieceState));
         LayoutCandidateHost = new ClassicPaneHost("CAD 参数", null);
@@ -229,8 +229,16 @@ public sealed class AppShellView : UserControl
 
     private async void OpenBoardSettings()
     {
-        if (TopLevel.GetTopLevel(this) is Window owner)
-            await new BoardSettingsWindow().ShowDialog(owner);
+        if (TopLevel.GetTopLevel(this) is not Window owner)
+            return;
+        var window = new BoardSettingsWindow();
+        var confirmed = await window.ShowDialog<bool?>(owner);
+        if (confirmed == true && window.Config is { } config)
+        {
+            // 确定：写入共享内存配置并更新配置摘要；取消/非法输入不改变已确认状态。
+            BoardSettingsStore.Default.Confirm(config);
+            StatusDemoText.Text = config.Summary;
+        }
     }
 
     private void RefreshSnapshot(WorkspaceSnapshot snapshot)

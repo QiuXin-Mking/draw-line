@@ -111,6 +111,35 @@ public sealed class OrderPiecePanelTests
         Assert.DoesNotContain(Descendants(shell.PieceListHost), control => control is Window);
     }
 
+    [Fact]
+    public void Multiple_orders_are_exposed_and_selecting_one_switches_the_piece_list()
+    {
+        var state = OrderPiecePanelState.CreateImage27Demo();
+
+        Assert.Equal(3, state.OrderCount);
+        Assert.Equal("贴皮测试（皮）", state.SelectedOrder.Name);
+        Assert.Equal(10, state.Pieces.Count);
+
+        var second = state.Orders[1];
+        state.SelectOrder(second);
+
+        Assert.Same(second, state.SelectedOrder);
+        Assert.Equal("鞋面-39 订单", state.SelectedOrder.Name);
+        Assert.Equal(3, state.Pieces.Count);
+        Assert.Equal(second.PieceCount, state.GroupPieceCount);
+    }
+
+    [Fact]
+    public void Shell_order_group_pane_is_titled_order_group_and_lists_one_card_per_order()
+    {
+        var state = OrderPiecePanelState.CreateImage27Demo();
+        var shell = new AppShellView(state);
+
+        Assert.Equal("订单组", shell.OrderGroupHost.Title);
+        var group = Assert.IsType<OrderGroupPanelView>(shell.OrderGroupHost.HostedContent);
+        Assert.Equal(3, group.Cards.Count);
+    }
+
     private static IEnumerable<Control> Descendants(Control root)
     {
         foreach (var child in root.GetVisualChildren().OfType<Control>())

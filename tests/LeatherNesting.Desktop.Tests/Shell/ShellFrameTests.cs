@@ -47,7 +47,7 @@ public sealed class ShellFrameTests
     {
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
 
-        Assert.Equal("订单 / 排版组", shell.OrderGroupHost.Title);
+        Assert.Equal("订单组", shell.OrderGroupHost.Title);
         Assert.Equal("裁片列表 · DEMO", shell.PieceListHost.Title);
         Assert.Equal("进度汇总 · DEMO", shell.ProgressSummaryHost.Title);
         Assert.Equal("CAD 参数", shell.LayoutCandidateHost.Title);

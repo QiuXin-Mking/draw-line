@@ -13,17 +13,16 @@ public sealed class BoardSettingsViewTests
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "BOARD-001")]
-    public void Fields_expose_the_evidence_defaults()
+    public void Fields_expose_the_user_confirmed_defaults()
     {
         var view = new BoardSettingsView();
 
-        Assert.Equal("a", view.NameEditor.Text);
-        Assert.Equal("1380.00", view.MaterialWidthEditor.Text);
-        Assert.Equal(string.Empty, view.MaterialLengthEditor.Text);
-        Assert.Equal("1", view.LayerCountEditor.Text);
-        Assert.Equal(string.Empty, view.MultiLayerRemainderEditor.Text);
+        Assert.Equal(string.Empty, view.NameEditor.Text);
+        Assert.Equal("1360.00", view.MaterialWidthEditor.Text);
+        Assert.Equal("0.00", view.MaterialLengthEditor.Text);
+        Assert.Equal("6", view.LayerCountEditor.Text);
         Assert.Equal("0.00", view.MaterialEdgeEditor.Text);
-        Assert.Equal(string.Empty, view.PieceSpacingEditor.Text);
+        Assert.Equal("2.00", view.PieceSpacingEditor.Text);
     }
 
     [Fact]
@@ -49,5 +48,39 @@ public sealed class BoardSettingsViewTests
         Assert.True(view.ConfirmButton.IsDefault);
         Assert.Same(AppTheme.ClassicFocus, view.ConfirmButton.BorderBrush);
         Assert.Equal(new Thickness(2), view.ConfirmButton.BorderThickness);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "BOARD-004")]
+    public void Multi_layer_remainder_is_a_dropdown_with_the_confirmed_options()
+    {
+        var view = new BoardSettingsView();
+
+        Assert.Equal(BoardSettingsViewModel.RemnantPolicyOptions, view.MultiLayerRemainderCombo.ItemsSource);
+        Assert.Equal("补齐", view.MultiLayerRemainderCombo.SelectedItem);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "BOARD-005")]
+    public void Cancel_button_is_present_beside_confirm()
+    {
+        var view = new BoardSettingsView();
+
+        Assert.Equal("取消", view.CancelButton.Content);
+        Assert.True(view.CancelButton.IsCancel);
+        Assert.NotNull(view.ConfirmButton);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "BOARD-006")]
+    public void Layer_count_filter_accepts_only_arabic_digits()
+    {
+        Assert.True(BoardSettingsView.IsArabicDigitText("7"));
+        Assert.True(BoardSettingsView.IsArabicDigitText("0126"));
+        Assert.False(BoardSettingsView.IsArabicDigitText("a"));
+        Assert.False(BoardSettingsView.IsArabicDigitText("7a"));
     }
 }

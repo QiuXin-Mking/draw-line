@@ -15,13 +15,10 @@ public enum PieceCardField
 
 public sealed class OrderGroupPanelView : UserControl
 {
+    private readonly StackPanel _cards = new() { Spacing = 2 };
+
     public OrderGroupPanelView(OrderPiecePanelState state)
     {
-        var count = new TextBlock { FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Right };
-        void Refresh() => count.Text = $"片数：{state.GroupPieceCount}";
-        state.Changed += (_, _) => Refresh();
-        Refresh();
-
         var properties = new Button { Content = "属性…", FontSize = 10, Padding = new Thickness(5, 1) };
         properties.Click += async (_, _) =>
         {
@@ -35,33 +32,100 @@ public sealed class OrderGroupPanelView : UserControl
             Orientation = Orientation.Horizontal,
             Spacing = 3,
             Children =
-        {
-            CompactButton("📁"), CompactButton("添加组"), CompactButton("删除"), CompactButton("添加"), properties,
-        }
+            {
+                CompactButton("📁"), CompactButton("添加组"), CompactButton("删除"), CompactButton("添加"), properties,
+            },
         };
-        var group = new Grid
-        {
-            ColumnDefinitions = ColumnDefinitions.Parse("*,Auto"),
-            Children =
-        {
-            Text(state.GroupName, FontWeight.SemiBold), count,
-        }
-        };
-        Grid.SetColumn(count, 1);
+
+        foreach (var order in state.Orders)
+            _cards.Children.Add(new OrderCardView(state, order));
+
         Content = new StackPanel
         {
             Margin = new Thickness(3, 2),
             Spacing = 2,
             Children =
-        {
-            Text(state.ChannelSummary), Text($"▾ {state.OrderName}\n   └ {state.GroupName}"), tools, group,
-            new TextBlock { Text = state.PersistenceNotice, FontSize = 8.5, Foreground = AppTheme.TodoAmber, TextWrapping = TextWrapping.Wrap },
-        }
+            {
+                tools,
+                new ScrollViewer { Content = _cards, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled },
+                new TextBlock { Text = state.PersistenceNotice, FontSize = 8.5, Foreground = AppTheme.TodoAmber, TextWrapping = TextWrapping.Wrap },
+            },
         };
     }
 
+    public IReadOnlyList<OrderCardView> Cards => _cards.Children.OfType<OrderCardView>().ToArray();
+
     private static Button CompactButton(string label) => new() { Content = label, FontSize = 10, Padding = new Thickness(4, 1) };
-    private static TextBlock Text(string value, FontWeight? weight = null) => new() { Text = value, FontSize = 10.5, FontWeight = weight ?? FontWeight.Normal };
+}
+
+/// <summary>One collapsible card per order; clicking selects the order and toggles its details.</summary>
+public sealed class OrderCardView : Border
+{
+    private readonly OrderPiecePanelState _state;
+    private readonly OrderRecord _order;
+    private readonly TextBlock _glyph;
+    private readonly TextBlock _count;
+    private readonly StackPanel _details;
+    private bool _isExpanded;
+
+    public OrderCardView(OrderPiecePanelState state, OrderRecord order)
+    {
+        _state = state;
+        _order = order;
+
+        _glyph = new TextBlock { Text = "▸", FontSize = 10, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
+        var name = new TextBlock { Text = order.Name, FontSize = 10.5, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
+        _count = new TextBlock { FontSize = 10.5, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
+        var headerContent = new Grid { ColumnDefinitions = ColumnDefinitions.Parse("Auto,*,Auto"), Children = { _glyph, name, _count } };
+        Grid.SetColumn(name, 1);
+        Grid.SetColumn(_count, 2);
+
+        var header = new Button
+        {
+            Content = headerContent,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            Padding = new Thickness(3, 2),
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+        };
+        header.Click += (_, _) =>
+        {
+            _state.SelectOrder(_order);
+            _isExpanded = !_isExpanded;
+            RefreshVisual();
+        };
+
+        _details = new StackPanel
+        {
+            Margin = new Thickness(12, 0, 0, 3),
+            Spacing = 1,
+            IsVisible = false,
+            Children =
+            {
+                new TextBlock { Text = _order.ChannelSummary, FontSize = 9, Foreground = AppTheme.TextMuted },
+                new TextBlock { Text = $"总数：{_order.TotalQuantity}    面积：{_order.Area:F2} m²", FontSize = 9, Foreground = AppTheme.TextMuted },
+            },
+        };
+
+        Padding = new Thickness(1);
+        BorderThickness = new Thickness(1);
+        CornerRadius = new CornerRadius(3);
+        Child = new StackPanel { Spacing = 1, Children = { header, _details } };
+
+        _state.Changed += (_, _) => RefreshVisual();
+        RefreshVisual();
+    }
+
+    private void RefreshVisual()
+    {
+        var selected = ReferenceEquals(_state.SelectedOrder, _order);
+        _glyph.Text = _isExpanded ? "▾" : "▸";
+        _count.Text = $"片数：{_order.PieceCount}";
+        _details.IsVisible = _isExpanded;
+        Background = selected ? AppTheme.SelectionSurface : AppTheme.PanelSurface;
+        BorderBrush = selected ? AppTheme.Accent : AppTheme.ClassicBorderNeutral;
+    }
 }
 
 public sealed class PieceCardListView : UserControl
