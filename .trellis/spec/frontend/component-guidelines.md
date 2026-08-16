@@ -102,6 +102,17 @@ if (command.IsPlaceholderAction)
     ShowTodo(command.Label);
 ```
 
+The one exception is a shell command that opens a modal dialog (e.g. 「新建排版」→「版型设置」). Mark it with `Launch = ShellCommandLaunch.NewBoardSettings` and drop the placeholder flag, then raise a dedicated `AppShellViewModel` event that the shell View subscribes to and renders via `ShowDialog(owner)`. The ViewModel must not open the window itself: showing a dialog needs a `Window` owner, which only the View layer (`TopLevel.GetTopLevel(this)`) can supply.
+
+```csharp
+new ShellToolbarCommand("新建排版", ToolbarIconKey.NewLayout, "M01", false,
+    Launch: ShellCommandLaunch.NewBoardSettings);
+
+// AppShellViewModel: if (command.Launch == ShellCommandLaunch.NewBoardSettings)
+//     BoardSettingsRequested?.Invoke(this, EventArgs.Empty); // return, no navigation/TODO
+// AppShellView: _viewModel.BoardSettingsRequested += (_, _) => OpenBoardSettings();
+```
+
 For cross-platform toolbar artwork, use Avalonia vector shapes or geometry. Do not use font glyphs or network-loaded bitmaps: installed fonts differ between Windows and macOS, and a missing glyph turns an important command into an unreadable placeholder.
 
 Required tests assert command label/order, unique icon keys, target module IDs, icon-before-label composition, TODO behavior for placeholder actions, and horizontal access at narrow widths.
