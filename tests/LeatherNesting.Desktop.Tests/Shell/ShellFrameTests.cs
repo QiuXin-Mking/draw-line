@@ -111,6 +111,47 @@ public sealed class ShellFrameTests
         Assert.DoesNotContain(Descendants(shell.CanvasSurface), control => control is ScrollViewer);
     }
 
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "FRAME-006")]
+    public void Left_rail_strip_is_a_persistent_left_edge_column_and_the_rail_starts_expanded()
+    {
+        var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
+
+        Assert.NotNull(shell.LeftRailStrip);
+        Assert.NotNull(shell.LeftRailToggle);
+        Assert.False(shell.IsLeftRailCollapsed);
+        Assert.True(shell.LeftRail.IsVisible);
+        Assert.Equal(13, shell.LeftRailColumn.Width.Value);
+        Assert.Equal(GridUnitType.Star, shell.LeftRailColumn.Width.GridUnitType);
+        Assert.Equal("◀", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
+        Assert.Equal((0, 1), (Grid.GetColumn(shell.LeftRailStrip), Grid.GetRow(shell.LeftRailStrip)));
+        Assert.DoesNotContain(Descendants(shell.BodyGrid), control => ReferenceEquals(control, shell.LeftRailStrip));
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "FRAME-007")]
+    public void Left_rail_toggle_collapses_the_rail_to_the_left_edge_and_restores_it()
+    {
+        var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
+
+        shell.ToggleLeftRail();
+
+        Assert.True(shell.IsLeftRailCollapsed);
+        Assert.False(shell.LeftRail.IsVisible);
+        Assert.Equal(0, shell.LeftRailColumn.Width.Value);
+        Assert.Equal("▶", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
+
+        shell.ToggleLeftRail();
+
+        Assert.False(shell.IsLeftRailCollapsed);
+        Assert.True(shell.LeftRail.IsVisible);
+        Assert.Equal(13, shell.LeftRailColumn.Width.Value);
+        Assert.Equal(GridUnitType.Star, shell.LeftRailColumn.Width.GridUnitType);
+        Assert.Equal("◀", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
+    }
+
     private static IEnumerable<Control> Descendants(Control root)
     {
         foreach (var child in root.GetVisualChildren().OfType<Control>())

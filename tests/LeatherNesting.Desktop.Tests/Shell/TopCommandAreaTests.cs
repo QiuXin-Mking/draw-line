@@ -393,9 +393,11 @@ public sealed class TopCommandAreaTests
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
         var layout = Assert.IsType<Grid>(shell.Content);
 
-        Assert.Single(layout.ColumnDefinitions);
-        Assert.Equal(GridLength.Star, layout.ColumnDefinitions[0].Width);
-        Assert.Equal(3, layout.Children.Count);
+        // 外层 = 常驻左缘折叠细条（Auto）+ 工作区（Star）；身体区仍为 13*,74*,13* 三列工作台。
+        Assert.Equal(2, layout.ColumnDefinitions.Count);
+        Assert.Equal(GridUnitType.Auto, layout.ColumnDefinitions[0].Width.GridUnitType);
+        Assert.Equal(GridLength.Star, layout.ColumnDefinitions[1].Width);
+        Assert.Equal(4, layout.Children.Count);
         Assert.DoesNotContain(layout.Children, child => Grid.GetRowSpan(child) == 3);
         Assert.Equal(1, Grid.GetColumn(shell.CanvasSurface));
         Assert.Equal(0, Grid.GetRow(shell.WorkspaceContent));
