@@ -58,7 +58,7 @@ public sealed class OrderGroupPanelView : UserControl
     private static Button CompactButton(string label) => new() { Content = label, FontSize = 10, Padding = new Thickness(4, 1) };
 }
 
-/// <summary>One collapsible card per order; clicking selects the order and toggles its details.</summary>
+/// <summary>One collapsible card per order; tapping selects the order and toggles its details.</summary>
 public sealed class OrderCardView : Border
 {
     private readonly OrderPiecePanelState _state;
@@ -76,25 +76,21 @@ public sealed class OrderCardView : Border
         _glyph = new TextBlock { Text = "▸", FontSize = 10, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
         var name = new TextBlock { Text = order.Name, FontSize = 10.5, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
         _count = new TextBlock { FontSize = 10.5, VerticalAlignment = VerticalAlignment.Center, Foreground = AppTheme.PrimaryText };
-        var headerContent = new Grid { ColumnDefinitions = ColumnDefinitions.Parse("Auto,*,Auto"), Children = { _glyph, name, _count } };
-        Grid.SetColumn(name, 1);
-        Grid.SetColumn(_count, 2);
 
-        var header = new Button
+        // 头行用纯 Border + Tapped，而非 Button：避免按钮主题的悬停/按下/焦点 chrome 污染列表头。
+        var header = new Border
         {
-            Content = headerContent,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
             Padding = new Thickness(3, 2),
             Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
+            Child = new Grid
+            {
+                ColumnDefinitions = ColumnDefinitions.Parse("Auto,*,Auto"),
+                Children = { _glyph, name, _count },
+            },
         };
-        header.Click += (_, _) =>
-        {
-            _state.SelectOrder(_order);
-            _isExpanded = !_isExpanded;
-            RefreshVisual();
-        };
+        Grid.SetColumn(name, 1);
+        Grid.SetColumn(_count, 2);
+        header.Tapped += (_, _) => Toggle();
 
         _details = new StackPanel
         {
@@ -114,6 +110,15 @@ public sealed class OrderCardView : Border
         Child = new StackPanel { Spacing = 1, Children = { header, _details } };
 
         _state.Changed += (_, _) => RefreshVisual();
+        RefreshVisual();
+    }
+
+    public bool IsExpanded => _isExpanded;
+
+    public void Toggle()
+    {
+        _state.SelectOrder(_order);
+        _isExpanded = !_isExpanded;
         RefreshVisual();
     }
 

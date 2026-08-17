@@ -140,6 +140,27 @@ public sealed class OrderPiecePanelTests
         Assert.Equal(3, group.Cards.Count);
     }
 
+    [Fact]
+    public void Order_card_tap_selects_its_order_and_toggles_the_detail_expansion()
+    {
+        var state = OrderPiecePanelState.CreateImage27Demo();
+        var card = new OrderCardView(state, state.Orders[1]);
+
+        Assert.False(card.IsExpanded);
+        Assert.NotSame(state.Orders[1], state.SelectedOrder);
+
+        card.Toggle();
+
+        Assert.True(card.IsExpanded);
+        Assert.Same(state.Orders[1], state.SelectedOrder);
+        Assert.Equal(3, state.Pieces.Count);
+
+        card.Toggle();
+
+        Assert.False(card.IsExpanded);
+        Assert.Same(state.Orders[1], state.SelectedOrder);
+    }
+
     private static IEnumerable<Control> Descendants(Control root)
     {
         foreach (var child in root.GetVisualChildren().OfType<Control>())
