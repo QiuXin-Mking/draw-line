@@ -22,7 +22,7 @@ public sealed class BoardSettingsWindow : Window
         View = new BoardSettingsView(viewModel);
 
         Title = "版型设置";
-        Width = 500;
+        Width = 540;
         Height = 400;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
@@ -75,12 +75,12 @@ public sealed class BoardSettingsView : UserControl
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         Background = AppTheme.PanelSurface;
 
-        NameEditor = TextEditor(_viewModel.Name);
+        NameEditor = TextEditor(_viewModel.Name, 130);
         HorizontalRadio = new RadioButton { Content = "横向", GroupName = "BoardDirection", Foreground = AppTheme.PrimaryText };
         VerticalRadio = new RadioButton { Content = "纵向", GroupName = "BoardDirection", IsChecked = true, Foreground = AppTheme.PrimaryText };
         MaterialWidthEditor = TextEditor(_viewModel.WidthText, 130);
         MaterialLengthEditor = TextEditor(_viewModel.LengthText, 130);
-        LayerCountEditor = TextEditor(_viewModel.LayersText, 80);
+        LayerCountEditor = TextEditor(_viewModel.LayersText, 130);
         // Tunnel 优先于 TextBox 自身处理，拦截非阿拉伯数字。
         LayerCountEditor.AddHandler(InputElement.TextInputEvent, RejectNonArabicDigit, RoutingStrategies.Tunnel);
         MultiLayerRemainderCombo = new ComboBox
@@ -242,22 +242,33 @@ public sealed class BoardSettingsView : UserControl
         IsVisible = false,
     };
 
+    private const double LabelWidth = 80;
+
     private static Control Field(string label, Control editor, TextBlock? error = null)
     {
-        var panel = new StackPanel
-        {
-            Orientation = Orientation.Vertical,
-            Spacing = 4,
-        };
-        panel.Children.Add(new TextBlock
+        var caption = new TextBlock
         {
             Text = label,
             FontSize = 12,
             Foreground = AppTheme.PrimaryText,
-        });
-        panel.Children.Add(editor);
-        if (error is not null)
-            panel.Children.Add(error);
+            Width = LabelWidth,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        editor.VerticalAlignment = VerticalAlignment.Center;
+        var line = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Children = { caption, editor },
+        };
+        if (error is null)
+            return line;
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Spacing = 2,
+            Children = { line, error },
+        };
         return panel;
     }
 
