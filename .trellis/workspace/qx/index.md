@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
+- **Total Sessions**: 11
 - **Last Active**: 2026-08-17
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~238 | Active |
+| `journal-1.md` | ~260 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 11 | 2026-08-17 | 左缘细条一键折叠/展开左侧栏 | `9ca5edd`, `751a77d` | `main` |
 | 10 | 2026-08-17 | 版型设置确认流程 + 订单折叠卡片 + 关联文档 | `e32f551`, `c4af231`, `63d690c`, `bab1754`, `90d903b`, `84afd58` | `main` |
 | 9 | 2026-08-16 | 新建排版弹出「版型设置」对话框 | `99dddf6`, `2d15ba3`, `8b3ffa0` | `main` |
 | 8 | 2026-08-15 | 快捷键真实绑定（§8.3 快捷键表） | `90efd44`, `c946ad8`, `614e52d` | `main` |

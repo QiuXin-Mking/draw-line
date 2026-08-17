@@ -236,3 +236,25 @@ G 区画布坐标轴由固定左上角静态 TextBlock 改为自绘 CadOriginAxe
 ### Status
 
 [OK] **Completed**
+
+
+## Session 11: 左缘细条一键折叠/展开左侧栏
+
+**Date**: 2026-08-17
+**Task**: 左缘细条一键折叠/展开左侧栏
+**Branch**: `main`
+
+### Summary
+
+按 trellis-brainstorm 完成规划（prd/design/implement），获批后实现：左边缘常驻 14px 细条，点击后订单组/裁片列表/进度汇总整体缩回左缘、中央画布变宽，再点恢复。细条放外层 Grid Auto 列，BodyGrid 三列几何不变；折叠显式清零左栏列宽（不依赖 star 列自动收缩）。新增 FRAME-006/007 测试，TOP-005 按新外层结构更新；全解决方案 408 测试通过。spec 补录可折叠侧栏的常驻边缘 chrome 模式。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9ca5edd` | (see git log) |
+| `751a77d` | (see git log) |
+
+### Status
+
+[OK] **Completed**
