@@ -80,6 +80,48 @@ suite cannot read a mutable brush from another dispatcher thread.
 
 ---
 
+## Form Field Layout
+
+A form field's label (key) and input (value) sit on the **same horizontal line** — never stack the label above the editor. Fix the label column to a constant width and give every input the same width so the fields read as one vertically-aligned grid.
+
+```csharp
+private const double LabelWidth = 80;
+
+private static Control Field(string label, Control editor, TextBlock? error = null)
+{
+    var caption = new TextBlock
+    {
+        Text = label,
+        FontSize = 12,
+        Foreground = AppTheme.PrimaryText,
+        Width = LabelWidth,                       // 固定宽度 → 每行输入框起点对齐
+        VerticalAlignment = VerticalAlignment.Center,
+    };
+    editor.VerticalAlignment = VerticalAlignment.Center;
+    var line = new StackPanel
+    {
+        Orientation = Orientation.Horizontal,     // key 与 value 同一行
+        Spacing = 8,
+        Children = { caption, editor },
+    };
+    if (error is null) return line;
+    return new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, Children = { line, error } };
+}
+```
+
+**Wrong** — vertical stack (label above input) misaligns and wastes vertical space:
+
+```csharp
+// Don't:
+var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 4 };
+panel.Children.Add(new TextBlock { Text = label });
+panel.Children.Add(editor);
+```
+
+**Why**: a fixed label column keeps every input's left edge aligned; consistent input widths read as one grid. Error text goes below the line so it never shifts the key/value row.
+
+---
+
 ## Accessibility
 
 <!-- A11y requirements and patterns -->
@@ -131,6 +173,25 @@ RightRows = "62*,38*";
 Wrong: placing a complete `CadCanvasView` (including its own surrounding UI) inside the center canvas host. Correct: keep the current module selected/cached, and bind only its canvas/content contract into the shell's existing center surface.
 
 Tests must assert host count/order and prevent nested scroll viewers, duplicate rulers, duplicate toolbars, or full module pages in the center canvas.
+
+### Collapsible side rails: persistent edge chrome lives outside the body geometry
+
+When a side rail (e.g. the left 订单组/裁片列表 column) needs a collapse-to-edge control, the trigger is persistent shell chrome: place it in the **outer layout grid** as a fixed `Auto` column, not inside the body's `13*,74*,13*` columns. This keeps the five-region body geometry and its tests stable.
+
+Collapse must free the canvas width, so zero the body's left column **explicitly** — do not rely on Avalonia collapsing a star column to 0 when its content is hidden.
+
+```csharp
+// Outer grid: "Auto,*"  →  strip column 0 (row 1), bodyLayer column 1.
+// BodyGrid stays "13*,74*,13*".
+public void ToggleLeftRail()
+{
+    _leftRailCollapsed = !_leftRailCollapsed;
+    LeftRail.IsVisible = !_leftRailCollapsed;
+    LeftRailColumn.Width = _leftRailCollapsed ? new GridLength(0) : new GridLength(13, GridUnitType.Star);
+}
+```
+
+Pitfall: structural tests that pin the outer grid (e.g. `Assert.Single(layout.ColumnDefinitions)`, `Assert.Equal(3, layout.Children.Count)`) must be updated to the new column/child count when persistent chrome is added. Assert the new structure explicitly (Auto strip + Star workspace) rather than deleting the guard.
 
 ### Code-built menus: use `ItemsSource`, not `Items.Add`
 
