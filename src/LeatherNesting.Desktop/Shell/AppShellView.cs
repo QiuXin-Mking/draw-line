@@ -19,14 +19,6 @@ public sealed class AppShellView : UserControl
     private readonly TextBlock _statusText = new() { Foreground = AppTheme.PrimaryText };
     private readonly TextBlock _statusProjectText = new() { Foreground = AppTheme.PrimaryText };
     private readonly TextBlock _statusVersionText = new() { Foreground = AppTheme.PrimaryText };
-    private readonly TextBlock _leftRailGlyph = new()
-    {
-        Text = "◀",
-        FontSize = 10,
-        Foreground = AppTheme.PrimaryText,
-        HorizontalAlignment = HorizontalAlignment.Center,
-        VerticalAlignment = VerticalAlignment.Center,
-    };
     private bool _leftRailCollapsed;
 
     public AppShellView() : this(DesktopComposition.CreateShellViewModel())
@@ -92,6 +84,7 @@ public sealed class AppShellView : UserControl
 
         _viewModel.SnapshotChanged += (_, snapshot) => RefreshSnapshot(snapshot);
         _viewModel.BoardSettingsRequested += (_, _) => OpenBoardSettings();
+        _viewModel.OrderWindowToggleRequested += (_, _) => ToggleLeftRail();
         _viewModel.CadHost.Changed += (_, _) =>
         {
             if (_viewModel.CurrentModule?.Id == "M02" && _viewModel.CadHost.Loops.Count > 0)
@@ -108,8 +101,6 @@ public sealed class AppShellView : UserControl
     public Grid LeftRail { get; }
     public Grid RightRail { get; }
     public bool IsLeftRailCollapsed => _leftRailCollapsed;
-    public Control LeftRailStrip { get; private set; } = new Border();
-    public Button LeftRailToggle { get; private set; } = new();
     public ColumnDefinition LeftRailColumn { get; private set; } = new();
     public ClassicPaneHost OrderGroupHost { get; }
     public ClassicPaneHost PieceListHost { get; }
@@ -128,50 +119,21 @@ public sealed class AppShellView : UserControl
     private Control BuildLayout()
     {
         var bodyLayer = new Grid { Children = { BodyGrid, _content } };
-        LeftRailStrip = BuildLeftStrip();
         var grid = new Grid
         {
-            ColumnDefinitions = ColumnDefinitions.Parse("Auto,*"),
+            ColumnDefinitions = ColumnDefinitions.Parse("*"),
             RowDefinitions = RowDefinitions.Parse("Auto,*,Auto"),
             Background = AppTheme.PanelSurface,
         };
         grid.Children.Add(TopCommands);
-        grid.Children.Add(LeftRailStrip);
         grid.Children.Add(bodyLayer);
         grid.Children.Add(StatusBar);
-        Grid.SetColumnSpan(TopCommands, 2);
-        Grid.SetColumnSpan(StatusBar, 2);
-        Grid.SetColumn(LeftRailStrip, 0);
-        Grid.SetRow(LeftRailStrip, 1);
-        Grid.SetColumn(bodyLayer, 1);
         Grid.SetRow(bodyLayer, 1);
         Grid.SetRow(StatusBar, 2);
         return grid;
     }
 
-    /// <summary>Persistent left-edge strip that collapses the whole left rail to the window edge and expands it back.</summary>
-    private Control BuildLeftStrip()
-    {
-        LeftRailToggle = new Button
-        {
-            Content = _leftRailGlyph,
-            Padding = new Thickness(0),
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch,
-        };
-        LeftRailToggle.Click += (_, _) => ToggleLeftRail();
-        return new Border
-        {
-            Width = 14,
-            Background = AppTheme.HeaderSurface,
-            BorderBrush = AppTheme.ClassicBorderNeutral,
-            BorderThickness = new Thickness(0, 0, 1, 0),
-            Child = LeftRailToggle,
-        };
-    }
-
+    /// <summary>通过「设置>订单窗口」菜单命令切换左侧栏显隐；折叠显式清零左栏列宽，中央画布随之变宽。</summary>
     public void ToggleLeftRail()
     {
         if (LeftRailColumn is null)
@@ -179,7 +141,8 @@ public sealed class AppShellView : UserControl
         _leftRailCollapsed = !_leftRailCollapsed;
         LeftRail.IsVisible = !_leftRailCollapsed;
         LeftRailColumn.Width = _leftRailCollapsed ? new GridLength(0) : new GridLength(13, GridUnitType.Star);
-        _leftRailGlyph.Text = _leftRailCollapsed ? "▶" : "◀";
+        if (TopCommands.OrderWindowToggle is { } toggle)
+            toggle.IsChecked = !_leftRailCollapsed;
     }
 
     private TopCommandArea BuildTopBar() => new(

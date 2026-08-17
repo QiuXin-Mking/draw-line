@@ -60,6 +60,9 @@ public sealed class AppShellViewModel
     /// <summary>「新建排版」请求打开版型设置对话框；由 View 层负责弹窗（需 Window owner）。</summary>
     public event EventHandler? BoardSettingsRequested;
 
+    /// <summary>「设置>订单窗口」请求切换左侧栏显隐；由 View 层负责折叠/恢复（纯 UI 状态）。</summary>
+    public event EventHandler? OrderWindowToggleRequested;
+
     public void Select(ModuleDescriptor module)
     {
         ArgumentNullException.ThrowIfNull(module);
@@ -99,6 +102,12 @@ public sealed class AppShellViewModel
         if (command.Launch == ShellCommandLaunch.NewBoardSettings)
         {
             BoardSettingsRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (command.Launch == ShellCommandLaunch.ToggleOrderWindow)
+        {
+            OrderWindowToggleRequested?.Invoke(this, EventArgs.Empty);
             return;
         }
 

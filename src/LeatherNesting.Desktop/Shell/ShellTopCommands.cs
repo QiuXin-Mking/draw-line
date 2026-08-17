@@ -91,7 +91,7 @@ public static class ShellTopMenu
         new ShellMenuEntry[]
         {
             new ShellMenuCommand("范围缩放", "M03", true),
-            new ShellMenuCommand("订单窗口", "M01", true),
+            new ShellMenuCommand("订单窗口", "M01", false, NavigateToModule: false, Launch: ShellCommandLaunch.ToggleOrderWindow),
             new ShellMenuCommand("设置窗口", "M12", true),
             new ShellMenuCommand("排样设置", "M08", true),
             new ShellMenuCommand("发送设置", "M11", true),
@@ -166,6 +166,7 @@ public enum ShellCommandLaunch
 {
     Module,
     NewBoardSettings,
+    ToggleOrderWindow,
 }
 
 public sealed record ShellMenuCommand(

@@ -393,11 +393,10 @@ public sealed class TopCommandAreaTests
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
         var layout = Assert.IsType<Grid>(shell.Content);
 
-        // 外层 = 常驻左缘折叠细条（Auto）+ 工作区（Star）；身体区仍为 13*,74*,13* 三列工作台。
-        Assert.Equal(2, layout.ColumnDefinitions.Count);
-        Assert.Equal(GridUnitType.Auto, layout.ColumnDefinitions[0].Width.GridUnitType);
-        Assert.Equal(GridLength.Star, layout.ColumnDefinitions[1].Width);
-        Assert.Equal(4, layout.Children.Count);
+        // 外层 = 单列 Star（顶栏/身体/状态栏跨整窗，无折叠细条）；身体区仍为 13*,74*,13* 三列工作台。
+        var column = Assert.Single(layout.ColumnDefinitions);
+        Assert.Equal(GridLength.Star, column.Width);
+        Assert.Equal(3, layout.Children.Count);
         Assert.DoesNotContain(layout.Children, child => Grid.GetRowSpan(child) == 3);
         Assert.Equal(1, Grid.GetColumn(shell.CanvasSurface));
         Assert.Equal(0, Grid.GetRow(shell.WorkspaceContent));
@@ -413,6 +412,38 @@ public sealed class TopCommandAreaTests
 
         Assert.Equal("M03", viewModel.CurrentModule!.Id);
         Assert.Same(viewModel.CurrentView, shell.WorkspaceContent.Content);
+    }
+
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "TOP-014")]
+    public void Settings_order_window_command_is_a_checkable_toggle_that_does_not_navigate()
+    {
+        var viewModel = DesktopComposition.CreateShellViewModel();
+        var shell = new AppShellView(viewModel);
+        var orderWindowToggle = shell.TopCommands.OrderWindowToggle;
+
+        // 「设置>订单窗口」是可勾选开关，默认勾选（左侧栏显示）。
+        Assert.NotNull(orderWindowToggle);
+        Assert.Equal("订单窗口", orderWindowToggle!.Header);
+        Assert.Equal(MenuItemToggleType.CheckBox, orderWindowToggle.ToggleType);
+        Assert.True(orderWindowToggle.IsChecked);
+        Assert.False(shell.IsLeftRailCollapsed);
+
+        // 点击菜单项：不导航模块（仍是 M03 画布），仅折叠左侧栏并同步取消勾选。
+        orderWindowToggle.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        Assert.Equal("M03", viewModel.CurrentModule!.Id);
+        Assert.True(shell.IsLeftRailCollapsed);
+        Assert.False(shell.LeftRail.IsVisible);
+        Assert.False(orderWindowToggle.IsChecked);
+
+        // 再次点击：恢复左侧栏并重新勾选。
+        orderWindowToggle.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        Assert.False(shell.IsLeftRailCollapsed);
+        Assert.True(shell.LeftRail.IsVisible);
+        Assert.True(orderWindowToggle.IsChecked);
     }
 
     private sealed class TestModule(string id, int order) : IDesktopModule

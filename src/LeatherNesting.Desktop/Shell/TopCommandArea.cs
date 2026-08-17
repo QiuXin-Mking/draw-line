@@ -116,6 +116,9 @@ public sealed class TopCommandArea : Border
 
     public IReadOnlyList<ShellToolbarButton> CommandButtons { get; }
 
+    /// <summary>「设置>订单窗口」可勾选菜单项，shell 用它同步左侧栏显隐状态。</summary>
+    public MenuItem? OrderWindowToggle { get; private set; }
+
     public ScrollViewer ToolbarScrollViewer { get; }
 
     public TextBlock ProductTitle { get; }
@@ -162,6 +165,13 @@ public sealed class TopCommandArea : Border
             Foreground = AppTheme.PrimaryText,
             IsEnabled = command.IsEnabled,
         };
+        if (command.Launch == ShellCommandLaunch.ToggleOrderWindow)
+        {
+            // 「设置>订单窗口」是勾选式开关：勾选=左侧栏显示，取消=隐藏。
+            item.ToggleType = MenuItemToggleType.CheckBox;
+            item.IsChecked = true;
+            OrderWindowToggle = item;
+        }
         item.Click += (_, _) => _activateMenu(command);
         return item;
     }

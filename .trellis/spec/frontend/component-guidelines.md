@@ -174,26 +174,40 @@ Wrong: placing a complete `CadCanvasView` (including its own surrounding UI) ins
 
 Tests must assert host count/order and prevent nested scroll viewers, duplicate rulers, duplicate toolbars, or full module pages in the center canvas.
 
-### Collapsible side rails: persistent edge chrome lives outside the body geometry
+### Collapsible side rails: menu toggle command, not edge chrome
 
-When a side rail (e.g. the left 订单组/裁片列表 column) needs a collapse-to-edge control, the trigger is persistent shell chrome: place it in the **outer layout grid** as a fixed `Auto` column, not inside the body's `13*,74*,13*` columns. This keeps the five-region body geometry and its tests stable.
+A side rail collapse (e.g. the left 订单组/裁片列表/进度汇总 column) is exposed as a **checkable `设置 > 订单窗口` menu command**, not as persistent edge chrome. The shell's outer layout grid stays a single `*` column — never add a fixed `Auto` strip column just to host a collapse trigger.
 
 Collapse must free the canvas width, so zero the body's left column **explicitly** — do not rely on Avalonia collapsing a star column to 0 when its content is hidden.
 
 ```csharp
-// Outer grid: "Auto,*"  →  strip column 0 (row 1), bodyLayer column 1.
+// ShellTopCommands.SettingsMenu:
+//   new ShellMenuCommand("订单窗口", "M01", false, NavigateToModule: false,
+//       Launch: ShellCommandLaunch.ToggleOrderWindow)
+//
+// TopCommandArea: build it as a checkable item and expose it to the shell.
+//   if (command.Launch == ShellCommandLaunch.ToggleOrderWindow)
+//   {
+//       item.ToggleType = MenuItemToggleType.CheckBox;   // 勾选 = 左侧栏显示
+//       item.IsChecked = true;
+//       OrderWindowToggle = item;
+//   }
+//
+// AppShellView: subscribe ViewModel.OrderWindowToggleRequested → ToggleLeftRail().
 // BodyGrid stays "13*,74*,13*".
 public void ToggleLeftRail()
 {
     _leftRailCollapsed = !_leftRailCollapsed;
     LeftRail.IsVisible = !_leftRailCollapsed;
     LeftRailColumn.Width = _leftRailCollapsed ? new GridLength(0) : new GridLength(13, GridUnitType.Star);
+    if (TopCommands.OrderWindowToggle is { } toggle)
+        toggle.IsChecked = !_leftRailCollapsed;   // 勾选状态与左侧栏显隐保持一致
 }
 ```
 
-Pitfall: structural tests that pin the outer grid (e.g. `Assert.Single(layout.ColumnDefinitions)`, `Assert.Equal(3, layout.Children.Count)`) must be updated to the new column/child count when persistent chrome is added. Assert the new structure explicitly (Auto strip + Star workspace) rather than deleting the guard.
+The ViewModel raises `OrderWindowToggleRequested` (like `BoardSettingsRequested`); the View owns the pure-UI collapse state, so the ViewModel never navigates or writes a TODO for this command.
 
-Pitfall: adding a persistent `Auto` edge column to a layout grid silently re-homes every child that is not explicitly placed. A full-width child that previously filled the single `*` column now lands in column 0 (the 14px strip) because `Grid.GetColumnSpan` defaults to 1. Give `TopCommands` and `StatusBar` explicit `Grid.SetColumnSpan(..., 2)` when the outer grid becomes `Auto,*`. Assert the spans in a structural test so the workspace star column cannot be squeezed to zero width again.
+Pitfall: adding a persistent `Auto` edge column to the outer layout grid silently re-homes every child that is not explicitly placed. A full-width child that previously filled the single `*` column lands in column 0 (e.g. a 14px strip) because `Grid.GetColumnSpan` defaults to 1, squeezing the workspace column to zero. Prefer a menu toggle; if a strip is ever reintroduced, every outer-grid child needs an explicit `Grid.SetColumnSpan` and the structural tests must pin the new column/child count rather than deleting the guard.
 
 ### Code-built menus: use `ItemsSource`, not `Items.Add`
 

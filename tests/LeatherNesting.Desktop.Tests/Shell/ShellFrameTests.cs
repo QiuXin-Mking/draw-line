@@ -114,25 +114,25 @@ public sealed class ShellFrameTests
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "FRAME-006")]
-    public void Left_rail_strip_is_a_persistent_left_edge_column_and_the_rail_starts_expanded()
+    public void Settings_order_window_toggle_is_checked_and_the_rail_starts_expanded_without_a_strip()
     {
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
 
-        Assert.NotNull(shell.LeftRailStrip);
-        Assert.NotNull(shell.LeftRailToggle);
         Assert.False(shell.IsLeftRailCollapsed);
         Assert.True(shell.LeftRail.IsVisible);
         Assert.Equal(13, shell.LeftRailColumn.Width.Value);
         Assert.Equal(GridUnitType.Star, shell.LeftRailColumn.Width.GridUnitType);
-        Assert.Equal("◀", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
-        Assert.Equal((0, 1), (Grid.GetColumn(shell.LeftRailStrip), Grid.GetRow(shell.LeftRailStrip)));
-        Assert.DoesNotContain(Descendants(shell.BodyGrid), control => ReferenceEquals(control, shell.LeftRailStrip));
+
+        // 「设置>订单窗口」是可勾选开关，默认勾选，对应左侧栏显示。
+        Assert.NotNull(shell.TopCommands.OrderWindowToggle);
+        Assert.Equal(MenuItemToggleType.CheckBox, shell.TopCommands.OrderWindowToggle!.ToggleType);
+        Assert.True(shell.TopCommands.OrderWindowToggle.IsChecked);
     }
 
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "FRAME-007")]
-    public void Left_rail_toggle_collapses_the_rail_to_the_left_edge_and_restores_it()
+    public void Toggling_the_left_rail_collapses_it_to_the_edge_syncs_the_menu_check_and_restores_it()
     {
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
 
@@ -141,7 +141,7 @@ public sealed class ShellFrameTests
         Assert.True(shell.IsLeftRailCollapsed);
         Assert.False(shell.LeftRail.IsVisible);
         Assert.Equal(0, shell.LeftRailColumn.Width.Value);
-        Assert.Equal("▶", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
+        Assert.False(shell.TopCommands.OrderWindowToggle!.IsChecked);
 
         shell.ToggleLeftRail();
 
@@ -149,25 +149,23 @@ public sealed class ShellFrameTests
         Assert.True(shell.LeftRail.IsVisible);
         Assert.Equal(13, shell.LeftRailColumn.Width.Value);
         Assert.Equal(GridUnitType.Star, shell.LeftRailColumn.Width.GridUnitType);
-        Assert.Equal("◀", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
+        Assert.True(shell.TopCommands.OrderWindowToggle.IsChecked);
     }
 
     [Fact]
     [Trait("Stage", "UI")]
     [Trait("TestId", "FRAME-008")]
-    public void Top_and_status_bars_span_the_whole_window_so_the_workspace_column_is_not_squeezed()
+    public void The_outer_layout_is_a_single_star_column_without_a_persistent_edge_strip()
     {
         var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
         var layout = Assert.IsType<Grid>(shell.Content);
-        var workspace = Assert.IsType<Grid>(layout.Children[2]);
+        var bodyLayer = Assert.IsType<Grid>(layout.Children[1]);
 
-        // 外层 Grid 是 Auto(细条),* 两列：顶栏与状态栏必须横跨两列，
-        // 否则会被 Auto 列（14px 细条）吃掉宽度，把 * 列（bodyLayer）挤没。
-        Assert.Equal(2, Grid.GetColumnSpan(shell.TopCommands));
-        Assert.Equal(2, Grid.GetColumnSpan(shell.StatusBar));
-        Assert.Same(shell.BodyGrid, workspace.Children[0]);
-        Assert.Equal(1, Grid.GetColumn(workspace));
-        Assert.Equal(GridUnitType.Star, layout.ColumnDefinitions[1].Width.GridUnitType);
+        // 外层 Grid 是单列 Star（顶栏/身体/状态栏各占一行），不存在挤占工作区的 Auto 细条列。
+        var column = Assert.Single(layout.ColumnDefinitions);
+        Assert.Equal(GridLength.Star, column.Width);
+        Assert.Same(shell.BodyGrid, bodyLayer.Children[0]);
+        Assert.DoesNotContain(layout.Children, child => Grid.GetColumn(child) > 0);
     }
 
     private static IEnumerable<Control> Descendants(Control root)
