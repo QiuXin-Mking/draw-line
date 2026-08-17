@@ -193,6 +193,8 @@ public void ToggleLeftRail()
 
 Pitfall: structural tests that pin the outer grid (e.g. `Assert.Single(layout.ColumnDefinitions)`, `Assert.Equal(3, layout.Children.Count)`) must be updated to the new column/child count when persistent chrome is added. Assert the new structure explicitly (Auto strip + Star workspace) rather than deleting the guard.
 
+Pitfall: adding a persistent `Auto` edge column to a layout grid silently re-homes every child that is not explicitly placed. A full-width child that previously filled the single `*` column now lands in column 0 (the 14px strip) because `Grid.GetColumnSpan` defaults to 1. Give `TopCommands` and `StatusBar` explicit `Grid.SetColumnSpan(..., 2)` when the outer grid becomes `Auto,*`. Assert the spans in a structural test so the workspace star column cannot be squeezed to zero width again.
+
 ### Code-built menus: use `ItemsSource`, not `Items.Add`
 
 When building `Menu` / `ContextMenu` in code, populate the item collection via

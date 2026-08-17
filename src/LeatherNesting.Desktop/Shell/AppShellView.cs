@@ -139,6 +139,8 @@ public sealed class AppShellView : UserControl
         grid.Children.Add(LeftRailStrip);
         grid.Children.Add(bodyLayer);
         grid.Children.Add(StatusBar);
+        Grid.SetColumnSpan(TopCommands, 2);
+        Grid.SetColumnSpan(StatusBar, 2);
         Grid.SetColumn(LeftRailStrip, 0);
         Grid.SetRow(LeftRailStrip, 1);
         Grid.SetColumn(bodyLayer, 1);

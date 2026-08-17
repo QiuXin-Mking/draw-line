@@ -152,6 +152,24 @@ public sealed class ShellFrameTests
         Assert.Equal("◀", Assert.IsType<TextBlock>(shell.LeftRailToggle.Content).Text);
     }
 
+    [Fact]
+    [Trait("Stage", "UI")]
+    [Trait("TestId", "FRAME-008")]
+    public void Top_and_status_bars_span_the_whole_window_so_the_workspace_column_is_not_squeezed()
+    {
+        var shell = new AppShellView(DesktopComposition.CreateShellViewModel());
+        var layout = Assert.IsType<Grid>(shell.Content);
+        var workspace = Assert.IsType<Grid>(layout.Children[2]);
+
+        // 外层 Grid 是 Auto(细条),* 两列：顶栏与状态栏必须横跨两列，
+        // 否则会被 Auto 列（14px 细条）吃掉宽度，把 * 列（bodyLayer）挤没。
+        Assert.Equal(2, Grid.GetColumnSpan(shell.TopCommands));
+        Assert.Equal(2, Grid.GetColumnSpan(shell.StatusBar));
+        Assert.Same(shell.BodyGrid, workspace.Children[0]);
+        Assert.Equal(1, Grid.GetColumn(workspace));
+        Assert.Equal(GridUnitType.Star, layout.ColumnDefinitions[1].Width.GridUnitType);
+    }
+
     private static IEnumerable<Control> Descendants(Control root)
     {
         foreach (var child in root.GetVisualChildren().OfType<Control>())
